@@ -1,12 +1,8 @@
 """
 Tests for the Berlekamp-Massey algorithm.
 """
-import sys
-import os
 from src.berlekamp_massey import berlekamp_massey, linear_complexity, lc_profile
 from src.lfsr import LFSR
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 def test_lc_matches_lfsr_degree():

@@ -2,11 +2,7 @@
 Tests for the LFSR class.
 """
 import pytest
-import sys
-import os
 from src.lfsr import LFSR
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 def test_period_degree_5():
