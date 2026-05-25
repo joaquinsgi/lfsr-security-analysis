@@ -1,5 +1,5 @@
 """
-NIST SP 800-22 — Frequency (Monobit) test.
+NIST SP 800-22, Frequency (Monobit) test.
 Checks whether 1s and 0s are roughly balanced.
 """
 

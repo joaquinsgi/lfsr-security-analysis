@@ -1,5 +1,5 @@
 """
-Visualization utilities — LC profiles and NIST results plots.
+Visualization utilities for LC profiles and NIST results plots.
 """
 
 import os
@@ -56,7 +56,7 @@ def plot_nist_comparison(results: dict[str, dict[str, float]], filename: str = "
     ax.set_xticklabels(test_names, rotation=30, ha="right")
     ax.set_ylabel("p-value")
     ax.set_ylim(0, 1.05)
-    ax.set_title("NIST SP 800-22 — p-values by generator")
+    ax.set_title("NIST SP 800-22 p-values by generator")
     ax.legend()
     plt.tight_layout()
 

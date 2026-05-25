@@ -44,6 +44,6 @@ if __name__ == "__main__":
     seq_asg = alternating_step_generator(r1, r2, r3, 1000)
 
     for i, (r, s) in enumerate(zip([r1, r2, r3], seqs), 1):
-        print(f"R{i} alone → linear complexity: {linear_complexity(s)}  (degree: {r.degree})")
+        print(f"R{i} alone, linear complexity: {linear_complexity(s)} (degree: {r.degree})")
 
-    print(f"ASG       → linear complexity: {linear_complexity(seq_asg)}")
+    print(f"ASG, linear complexity: {linear_complexity(seq_asg)}")

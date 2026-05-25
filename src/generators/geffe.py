@@ -37,9 +37,6 @@ if __name__ == "__main__":
     seq_geffe = geffe_generator(r1, r2, r3, 1000)
 
     for i, (r, s) in enumerate(zip([r1, r2, r3], seqs), 1):
-        print(f"R{i} alone → linear complexity: {linear_complexity(s)}  (degree: {r.degree})")
+        print(f"R{i} alone, linear complexity: {linear_complexity(s)} (degree: {r.degree})")
 
-    print(f"Geffe     → linear complexity: {linear_complexity(seq_geffe)}")
-    print()
-    print("NOTE: despite the high LC, Geffe is vulnerable to correlation attacks.")
-    print("Each LFSR can be recovered independently — see security analysis.")
+    print(f"Geffe, linear complexity: {linear_complexity(seq_geffe)}")

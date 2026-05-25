@@ -12,8 +12,7 @@ class LFSR:
 
         if len(initial_state) != self.degree:
             raise ValueError(
-                f"Initial state must have {self.degree} bits, "
-                f"Actual state: {len(initial_state)}"
+                f"Initial state must have {self.degree} bits, Actual state: {len(initial_state)}"
             )
         if all(b == 0 for b in initial_state):
             raise ValueError("Zero initial state is not allowed")
@@ -55,14 +54,13 @@ class LFSR:
 
     def __repr__(self):
         return (
-            f"LFSR(degree={self.degree}, taps={self.taps}, "
-            f"state={self.state})"
+            f"LFSR(degree={self.degree}, taps={self.taps}, state={self.state})"
         )
 
 
 if __name__ == "__main__":
 
-    lfsr = LFSR(taps=[5, 2], initial_state=[1, 0, 1, 1, 0])
+    lfsr = LFSR(taps=[3, 1], initial_state=[1, 0, 0])
 
     seq = lfsr.full_cycle()
     print(f"Degree: {lfsr.degree}")

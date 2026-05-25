@@ -1,3 +1,6 @@
+"""Berlekamp-Massey algorithm to find the linear complexity of a binary sequence.
+"""
+
 def berlekamp_massey(sequence: list[int]) -> tuple[int, list[int]]:
     """Returns (linear_complexity, connection_polynomial)."""
     n = len(sequence)
@@ -55,7 +58,10 @@ def lc_profile(sequence: list[int]) -> list[int]:
 
 
 if __name__ == "__main__":
-    from lfsr import LFSR
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    from src.lfsr import LFSR
 
     lfsr = LFSR(taps=[5, 2], initial_state=[1, 0, 1, 1, 0])
     seq = lfsr.generate(20)

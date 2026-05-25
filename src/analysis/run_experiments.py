@@ -110,8 +110,8 @@ def main():
         passed = sum(1 for v in nist.values() if v >= 0.01)
         print(f"  NIST: {passed}/8 passed  |  LC: {lc}  |  {elapsed:.1f}s")
         for test, pval in nist.items():
-            status = "✓" if pval >= 0.01 else "✗"
-            print(f"    {status} {test:<15} p={pval}")
+            status = "PASS" if pval >= 0.01 else "FAIL"
+            print(f"    [{status}] {test:<15} p={pval}")
         print()
 
     os.makedirs(os.path.join(os.path.dirname(__file__), "../../results"), exist_ok=True)

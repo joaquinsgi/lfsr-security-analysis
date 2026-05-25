@@ -1,5 +1,5 @@
 """
-NIST SP 800-22 — Spectral (DFT) test.
+NIST SP 800-22, Spectral (DFT) test.
 Applies DFT and checks for dominant frequencies that
 would indicate hidden periodicities.
 """

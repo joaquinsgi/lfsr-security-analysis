@@ -1,5 +1,5 @@
 """
-NIST SP 800-22 — Runs test.
+NIST SP 800-22, Runs test.
 Checks that the number of runs (consecutive equal bits)
 is what you would expect from a random sequence.
 """

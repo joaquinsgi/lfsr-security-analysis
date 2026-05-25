@@ -27,8 +27,7 @@ def shrinking_generator(r1: LFSR, r2: LFSR, n: int) -> list[int]:
 
     if len(output) < n:
         raise RuntimeError(
-            f"could not generate {n} bits after {max_clocks} clocks — "
-            "check that r1 is not stuck in a low-density state"
+            f"could not generate {n} bits after {max_clocks} clocks, check that r1 is not stuck in a low-density state"
         )
 
     return output
@@ -51,7 +50,6 @@ if __name__ == "__main__":
     lc_r2 = linear_complexity(seq_r2)
     lc_sh = linear_complexity(seq_shrinking)
 
-    print(f"R1 alone  → linear complexity: {lc_r1}  (degree: {r1.degree})")
-    print(f"R2 alone  → linear complexity: {lc_r2}  (degree: {r2.degree})")
-    print(f"Shrinking → linear complexity: {lc_sh}")
-    print(f"Improvement factor: x{lc_sh // max(lc_r1, lc_r2)}")
+    print(f"R1 alone, linear complexity: {lc_r1} (degree: {r1.degree})")
+    print(f"R2 alone, linear complexity: {lc_r2} (degree: {r2.degree})")
+    print(f"Shrinking, linear complexity: {lc_sh}")

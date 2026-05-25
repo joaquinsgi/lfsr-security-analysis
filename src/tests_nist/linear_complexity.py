@@ -1,10 +1,9 @@
 """
-NIST SP 800-22 — Linear Complexity test.
+NIST SP 800-22, Linear Complexity test.
 Computes LC per block with Berlekamp-Massey and checks
 that the values match what a random sequence would give.
 """
 
-import math
 from scipy.special import gammaincc
 import sys
 import os
@@ -23,8 +22,7 @@ def linear_complexity_test(
 
     if num_blocks < 200:
         raise ValueError(
-            f"need at least {200 * M} bits for this test "
-            f"(got {n})"
+            f"need at least {200 * M} bits for this test (got {n})"
         )
 
     mu = (

@@ -1,9 +1,8 @@
 """
-NIST SP 800-22 — Serial test.
+NIST SP 800-22, Serial test.
 Checks that all m-bit patterns appear with similar frequency.
 """
 
-import math
 from scipy.special import gammaincc
 
 

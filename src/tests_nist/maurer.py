@@ -1,5 +1,5 @@
 """
-NIST SP 800-22 — Maurer's Universal Statistical test.
+NIST SP 800-22, Maurer's Universal Statistical test.
 Measures compressibility by looking at distances between
 repeated patterns. Random sequences are hard to compress.
 """
@@ -35,8 +35,7 @@ def maurer_test(sequence: list[int], block_size: int = 6) -> tuple[float, bool]:
 
     if K <= 0:
         raise ValueError(
-            f"sequence too short for block_size={L} "
-            f"(need at least {(Q + 1) * L} bits, got {n})"
+            f"sequence too short for block_size={L} (need at least {(Q + 1) * L} bits, got {n})"
         )
 
     table = {}

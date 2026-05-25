@@ -1,9 +1,7 @@
 """
-NIST SP 800-22 — Block Frequency test.
+NIST SP 800-22, Block Frequency test.
 Same as monobit but checks balance within each block.
 """
-
-import math
 
 
 def block_frequency_test(

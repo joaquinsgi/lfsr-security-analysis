@@ -1,5 +1,5 @@
 """
-NIST SP 800-22 — Binary Matrix Rank test.
+NIST SP 800-22, Binary Matrix Rank test.
 Puts chunks of the sequence into matrices and checks
 rank over GF(2). Linear structure lowers the rank.
 """
@@ -22,8 +22,7 @@ def binary_matrix_rank_test(
 
     if num_matrices < 38:
         raise ValueError(
-            f"need at least {38 * block_size} bits for this test "
-            f"(got {n})"
+            f"need at least {38 * block_size} bits for this test (got {n})"
         )
 
     F_M = 0

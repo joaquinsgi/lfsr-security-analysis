@@ -45,6 +45,5 @@ if __name__ == "__main__":
     lc_raw = linear_complexity(seq_raw)
     lc_ss  = linear_complexity(seq_ss)
 
-    print(f"Raw LFSR      → linear complexity: {lc_raw}  (degree: {r.degree})")
-    print(f"Self-shrinking → linear complexity: {lc_ss}")
-    print(f"Improvement factor: x{lc_ss // lc_raw}")
+    print(f"Raw LFSR, linear complexity: {lc_raw} (degree: {r.degree})")
+    print(f"Self-shrinking, linear complexity: {lc_ss}")
