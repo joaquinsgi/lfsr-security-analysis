@@ -1,0 +1,160 @@
+\chapter{Conclusiones}
+\label{cap:conclusiones}
+
+\section{Resumen del trabajo}
+
+Este trabajo ha consistido en implementar desde cero un entorno completo para el análisis de generadores pseudoaleatorios basados en LFSR
+y usarlo para comparar cuatro construcciones clásicas, Geffe, Shrinking, Self-Shrinking y Alternating Step Generator.
+
+El entorno incluye tres componentes principales. El primero es la implementación de los generadores, un LFSR genérico parametrizable por grado y polinomio,
+y los cuatro generadores construidos sobre él. El segundo es el algoritmo de Berlekamp-Massey,
+que permite medir la complejidad lineal de cualquier secuencia binaria y calcular su perfil de evolución.
+El tercero son ocho tests del estándar NIST SP 800-22, cada uno evaluando un aspecto distinto de la aleatoriedad
+(balance, distribución de rachas, rango matricial, compresibilidad, distribución de patrones, espectro de frecuencias y complejidad lineal por bloques).
+
+Son unas 1500 líneas de Python escritas sin librerías criptográficas. Las únicas dependencias externas son scipy (funciones de distribución estadística),
+numpy (operaciones con arrays) y matplotlib (gráficas). Hay 27 tests unitarios que verifican cada componente contra valores de referencia conocidos.
+
+El análisis experimental se ha realizado con secuencias de 500.000 bits para los tests NIST y 5.000 bits para la complejidad lineal,
+con un nivel de significación $\alpha = 0{,}01$. Los resultados principales son los siguientes,
+el generador de ASG pasa los 8 tests con complejidad lineal cercana a $N/2$,
+Shrinking y Self-Shrinking tienen complejidad lineal similar al ASG pero fallan el test espectral,
+el generador de Geffe pasa 7 tests pero es vulnerable a ataques de correlación, y el LFSR puro falla los 3 tests que detectan estructura lineal.
+
+\section{Conclusiones principales}
+
+\subsection{La complejidad lineal es necesaria pero no suficiente}
+
+La complejidad lineal separa claramente a los generadores en dos grupos. Por un lado el LFSR puro y Geffe,
+con valores bajos respecto a la longitud de la secuencia. Por otro Shrinking, Self-Shrinking y ASG, con valores cercanos a $N/2$.
+Sin embargo, dentro del segundo grupo la complejidad lineal no distingue la calidad real.
+
+Geffe tiene complejidad lineal 623, mucho mayor que la del LFSR puro (19) pero baja en términos absolutos.
+Aun así, su debilidad principal no es esa sino la correlación $0{,}75$ con dos de sus LFSR internos,
+que permite un ataque con coste proporcional a la suma de los espacios de estados, no al producto.
+Un atacante rompe Geffe mucho antes de lo que Berlekamp-Massey requeriría.
+
+Los otros tres generadores tienen complejidades lineales casi idénticas ($\sim 2500$) pero comportamiento distinto en el test espectral,
+y eso la complejidad lineal no lo captura. Tener LC alta es condición necesaria (un generador con LC baja cae frente a Berlekamp-Massey)
+pero no basta para garantizar buenas propiedades estadísticas.
+
+\subsection{Los tests estadísticos detectan propiedades, no seguridad}
+
+Los tests NIST detectan desviaciones estadísticas en la secuencia de salida, no evalúan la seguridad del generador como construcción criptográfica.
+Geffe pasa 7 de 8 tests pese a ser trivialmente atacable. El LFSR puro pasa 5 de 8 pese a ser completamente predecible con 38 bits observados.
+
+Esto no significa que los tests sean inútiles. Si la salida tiene patrones detectables, el generador no puede ser seguro.
+Pero pasar todos los tests no garantiza seguridad, solo que no hay defectos estadísticos evidentes.
+Los tests filtran generadores con defectos obvios, no sustituyen al análisis de la estructura interna.
+
+\subsection{El mecanismo de combinación determina la calidad}
+
+De los cuatro generadores, el ASG es el que mejor se comporta tanto en complejidad lineal como en los tests estadísticos.
+Pasa los 8 tests NIST con los mismos parámetros con los que los otros tres fallan al menos uno.
+La diferencia está en su mecanismo de combinación, reloj irregular más XOR de dos fuentes independientes.
+
+La comparación más clara es entre Geffe y ASG, ya que ambos usan exactamente los mismos tres LFSR.
+La única diferencia es cómo se conectan. Geffe usa un multiplexor (selección directa con correlación) y ASG usa reloj alterno más XOR.
+El resultado, Geffe tiene LC 623 y falla espectralmente, ASG tiene LC 2499 y pasa todo.
+Mismo hardware, resultado completamente distinto.
+
+La conclusión es clara, en generadores basados en LFSR la clave no es el tamaño de los registros sino cómo se combinan.
+Un buen mecanismo convierte tres LFSR pequeños en un generador robusto, un mecanismo malo (el multiplexor de Geffe) deja el sistema vulnerable
+da igual cuánto se agranden los registros.
+
+\subsection{La selección irregular es buena pero no perfecta}
+
+Shrinking y Self-Shrinking logran complejidades lineales excelentes y pasan 7 de 8 tests.
+Su mecanismo de selección irregular destruye la estructura lineal de la secuencia base.
+Sin embargo, ambos fallan el test espectral, lo que indica que la periodicidad del LFSR base no se elimina completamente con el muestreo.
+
+Que el ASG (con un mecanismo distinto) sí pase el espectral sugiere que para eliminar las componentes frecuenciales
+no basta con muestrear irregularmente una secuencia periódica, hace falta combinar dos fuentes independientes de forma que sus periodicidades
+se cancelen mutuamente.
+
+En la práctica esta debilidad espectral probablemente desaparece con LFSR de grado suficiente,
+porque los armónicos se diluyen en secuencias largas. Pero con los grados pequeños usados en este experimento, la diferencia es medible.
+
+\section{Cumplimiento de objetivos}
+
+Se han cumplido todos los objetivos de la introducción.
+
+\begin{enumerate}
+  \item Se ha implementado un LFSR genérico y el algoritmo de Berlekamp-Massey desde cero en Python,
+        con tests unitarios que verifican su corrección.
+  \item Se han implementado los cuatro generadores (Geffe, Shrinking, Self-Shrinking y ASG),
+        todos funcionales y verificados contra resultados conocidos.
+  \item Se ha medido la complejidad lineal de cada generador,
+        verificando que los valores experimentales son coherentes con las cotas teóricas.
+  \item Se han pasado 8 tests NIST a las secuencias de cada generador con $\alpha = 0{,}01$,
+        y se han comparado los resultados.
+  \item Se han extraído conclusiones sobre la seguridad relativa de los generadores,
+        justificadas tanto por los resultados experimentales como por la teoría.
+\end{enumerate}
+
+Además de estos objetivos explícitos, el trabajo ha producido un software completo y documentado que podría usarse como base para análisis más amplios
+(con más tests, más generadores o parámetros más grandes).
+
+\section{Trabajo futuro}
+
+\subsection{Secuencias más largas y más estados iniciales}
+
+El análisis usa un estado inicial fijo por generador. Una extensión natural es ejecutar los tests con múltiples estados iniciales seleccionados al azar
+y reportar la distribución de p-valores en vez de un único valor.
+Así se podría ver si los resultados cercanos al umbral (como el block frequency del Self-Shrinking con 0,012) son estables o dependen del estado concreto.
+
+Otra dirección interesante es fijar la longitud de secuencia y variar los grados de los LFSR para trazar la frontera de detección,
+a partir de qué grado mínimo el Shrinking empieza a pasar el test espectral.
+El resultado sería una recomendación práctica de tamaño mínimo para cada generador.
+
+\subsection{Implementación de ataques}
+
+El ataque de correlación contra Geffe se ha descrito teóricamente pero no se ha implementado.
+Una extensión interesante sería programarlo y verificar experimentalmente que el coste real coincide con el predicho ($2^{n_1} + 2^{n_2} + 2^{n_3}$).
+Dado un fragmento de keystream observado, probar los $2^5 = 32$ estados posibles de $R_2$, generar la secuencia correspondiente y contar coincidencias.
+El estado correcto debería dar coincidencia $\sim 75\%$ y uno incorrecto $\sim 50\%$.
+Verificar esto en la práctica y medir cuántos bits necesita la distinción para ser fiable sería una demostración concreta de la vulnerabilidad.
+
+También se podría implementar fuerza bruta sobre $R_1$ del Shrinking y medir cuántos bits son necesarios para identificar correctamente la secuencia de selección.
+
+\subsection{Tests adicionales y herramientas externas}
+
+Implementar los 7 tests NIST restantes daría una imagen más completa del comportamiento de cada generador.
+Random excursions en particular podría revelar asimetrías que los implementados no detectan.
+
+Para validar la implementación se podría ejecutar la batería NIST oficial (escrita en C por el propio NIST) sobre las mismas secuencias generadas por mi código.
+Esto serviría como comprobación cruzada, y si los p-valores coinciden con la implementación oficial,
+se tendría confianza adicional en la corrección.
+
+\subsection{Generadores más recientes}
+
+Los cuatro generadores estudiados son construcciones clásicas de los años 70-90.
+Sería interesante repetir el análisis con generadores más recientes como Grain o Trivium (del proyecto eSTREAM),
+que también están basados en registros de desplazamiento pero incorporan componentes no lineales más sofisticados.
+Comparar estos con los clásicos permitiría ver cuánto ha avanzado el diseño de cifrados de flujo en las últimas décadas.
+
+Grain combina un LFSR con un NLFSR (registro con retroalimentación no lineal) del mismo tamaño y aplica una función booleana de filtrado sobre ambos.
+Implementar Grain con las mismas herramientas de este trabajo y compararlo con el ASG mostraría si el componente no lineal explícito da mejores resultados
+que la no linealidad implícita del reloj irregular.
+
+\section{Valoración personal}
+
+Este trabajo me ha permitido entender la criptografía de flujo a un nivel de detalle que no habría conseguido solo leyendo sobre ella.
+Implementar Berlekamp-Massey desde cero, por ejemplo, obliga a entender por qué funciona y cómo cada paso del algoritmo contribuye al resultado.
+Lo mismo pasa con los tests NIST, ya que programar cada uno te fuerza a pensar en qué hipótesis estadística se está contrastando
+y qué distribución teórica se asume.
+
+La parte que me resultó más sorprendente fue que el ASG (con los mismos LFSR que el de Geffe) diera resultados tan superiores en los tests estadísticos.
+Antes de hacer los experimentos esperaba que Shrinking y Self-Shrinking fueran los mejores por ser los más recientes.
+Que el de ASG (de 1987, anterior a los otros dos) fuera el único en pasar todos los tests fue contraintuitivo hasta entender la razón,
+el XOR con reloj alterno destruye la periodicidad de una forma que el muestreo irregular no consigue.
+
+También me pareció instructivo ver que el LFSR puro pasa 5 de 8 tests. Si solo se evaluara con tests estadísticos básicos parecería un generador aceptable.
+Esto refuerza algo que leí varias veces pero no terminaba de interiorizar, las propiedades estadísticas y la seguridad criptográfica son cosas distintas.
+Para evaluar un generador hay que atacarlo, no solo testearlo.
+
+Por último, la decisión de implementar todo desde cero ha sido la que más tiempo ha costado pero también la que más me ha enseñado.
+Programar el test espectral, por ejemplo, me obligó a entender la DFT a un nivel que de otra forma no habría necesitado.
+Y cuando el Self-Shrinking dio un p-valor de 0,012 en block frequency, pude ir directamente al código del test a comprobar que no era un bug
+(no lo era, simplemente esa secuencia concreta tiene un bloque con desequilibrio local). Esa capacidad de ir al código y entender exactamente qué pasa
+es lo que justifica el esfuerzo de no usar librerías externas.

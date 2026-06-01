@@ -2,324 +2,255 @@
 
 \section{Contexto}
 
-En criptografía simétrica hay dos grandes familias de cifrados: los cifrados en bloque y
-los cifrados de flujo. Los cifrados en bloque, como AES, dividen el mensaje en trozos de
-tamaño fijo y los procesan de forma independiente. Los cifrados de flujo combinan cada bit
-del mensaje con un bit de una secuencia pseudoaleatoria llamada \textit{keystream}, lo que
-permite cifrar datos de cualquier longitud sin relleno y con una latencia mínima.
+En criptografía simétrica hay dos grandes familias de cifrados, los cifrados en bloque y los cifrados de flujo.
+Los cifrados en bloque, como AES, dividen el mensaje en trozos de tamaño fijo y los procesan de forma independiente.
+Los cifrados de flujo combinan cada bit del mensaje con un bit de una secuencia pseudoaleatoria llamada \textit{keystream},
+lo que permite cifrar datos de cualquier longitud sin relleno y con una latencia mínima.
 
-La idea de cifrar combinando el mensaje con una secuencia de clave bit a bit viene
-de lejos. En 1917, Gilbert Vernam patentó un sistema telegráfico que hacía exactamente
-eso, y en 1949 Shannon demostró que si la secuencia de clave es verdaderamente
-aleatoria, tan larga como el mensaje y se usa una sola vez, el cifrado resulta
-teóricamente irrompible. Es lo que se conoce como \textit{one-time pad}. El problema
-es que distribuir una clave tan larga como el mensaje que se quiere proteger es
-inviable en la mayoría de escenarios, así que los cifrados de flujo parten de una
-clave corta (de 80 o 128 bits) y la expanden con un generador pseudoaleatorio
-hasta obtener un \textit{keystream} de la longitud necesaria. La seguridad ya no es
-perfecta, pero si el generador está bien diseñado, distinguir el keystream de una
-secuencia verdaderamente aleatoria debería ser computacionalmente imposible.
+La idea de cifrar combinando el mensaje con una secuencia de clave bit a bit viene de lejos.
+En 1917, Gilbert Vernam patentó un sistema telegráfico que hacía exactamente eso, y en 1949 Shannon demostró
+que si la secuencia de clave es verdaderamente aleatoria, tan larga como el mensaje y se usa una sola vez,
+el cifrado resulta teóricamente irrompible. Es lo que se conoce como \textit{one-time pad}.
 
-En la práctica, la mayoría de cifrados de flujo diseñados para hardware se han basado
-en LFSR. La razón es sencilla: un LFSR se implementa con flip-flops y puertas XOR,
-que son los componentes más baratos que existen en un circuito digital. La teoría
-matemática detrás de los LFSR está muy desarrollada (polinomios primitivos,
-secuencias de longitud máxima, autocorrelación), lo que permite conocer de antemano
-las propiedades de la secuencia base. El reto siempre ha sido el mismo: cómo combinar
-uno o varios LFSR para que la salida final no sea lineal sin perder esas buenas
-propiedades.
+El problema es que distribuir una clave tan larga como el mensaje que se quiere proteger es inviable en la mayoría de escenarios,
+así que los cifrados de flujo parten de una clave corta (de 80 o 128 bits)
+y la expanden con un generador pseudoaleatorio hasta obtener un \textit{keystream} de la longitud necesaria.
+La seguridad ya no es perfecta, pero si el generador está bien diseñado, distinguir el keystream de una secuencia
+verdaderamente aleatoria debería ser computacionalmente imposible.
 
-Los cifrados de flujo llevan décadas usándose en sistemas donde la velocidad o el coste
-hardware son críticos. Los dos ejemplos más conocidos son A5/1 en la telefonía GSM y E0 en
-Bluetooth. A5/1 utiliza tres LFSR de grados 19, 22 y 23, combinados con un mecanismo
-de reloj irregular, que en cada ciclo, un bit de mayoría decide cuáles de los tres
-registros avanzan y cuáles se quedan parados. E0 es algo distinto, combina cuatro
-LFSR con una máquina de estados finita de 4 bits que mezcla las salidas. En ambos
-casos la razón de elegir un cifrado de flujo frente a uno de bloque fue la misma:
-generar un bit de \textit{keystream} requiere poco más que operaciones XOR, así que
-los circuitos son pequeños y el consumo bajo.
+En la práctica, la mayoría de cifrados de flujo diseñados para hardware se han basado en LFSR.
+La razón es sencilla, ya que un LFSR se implementa con flip-flops y puertas XOR, que son los componentes más baratos que existen en un circuito digital.
+La teoría matemática detrás de los LFSR está muy desarrollada (polinomios primitivos, secuencias de longitud máxima, autocorrelación),
+lo que permite conocer de antemano las propiedades de la secuencia base. El reto siempre ha sido cómo combinar uno o varios
+LFSR para que la salida final no sea lineal sin perder esas buenas propiedades.
 
-Ninguno de estos dos diseños ha resistido bien el paso del tiempo. A5/1 se diseñó
-en 1987 como parte del estándar GSM, pero su especificación se mantuvo en secreto
-durante más de una década bajo la premisa de que la oscuridad añadiría seguridad.
-En 1999, Briceno, Goldberg y Wagner consiguieron hacer ingeniería inversa del
-algoritmo a partir de un teléfono GSM, y ese mismo año Biryukov, Shamir y Wagner
-publicaron ataques que permitían recuperar la clave con un esfuerzo del orden de
-$2^{40}$ operaciones, muy por debajo de los $2^{64}$ que se suponía que
-ofrecía~\cite{biryukov2000}. Finalmente en 2010, Karsten Nohl
-demostró que con tablas arcoíris precomputadas se podían descifrar llamadas GSM en
-tiempo casi real usando un portátil y una radio definida por software.
+Los cifrados de flujo llevan décadas usándose en sistemas donde la velocidad o el coste hardware son críticos.
+Los dos ejemplos más conocidos son A5/1 en la telefonía GSM y E0 en Bluetooth.
+A5/1 utiliza tres LFSR de grados 19, 22 y 23, combinados con un mecanismo de reloj irregular,
+que en cada ciclo, un bit de mayoría decide cuáles de los tres registros avanzan y cuáles se quedan parados.
+E0 es algo distinto, combina cuatro LFSR con una máquina de estados finita de 4 bits que mezcla las salidas.
+En ambos casos la razón de elegir un cifrado de flujo frente a uno de bloque fue la misma,
+ya que generar un bit de \textit{keystream} requiere poco más que operaciones XOR, así que los circuitos son pequeños y el consumo bajo.
 
-E0 tampoco aguantó demasiado. En 2004, Lu y Vaudenay publicaron un ataque que
-explota correlaciones condicionales entre la salida y los estados internos de los
-LFSR, reduciendo la complejidad real a unas $2^{38}$ operaciones con los primeros
-$2^{24}$ bits del keystream, muy lejos de los $2^{128}$ que la longitud de clave
-prometía~\cite{lu2004}. El problema es que la máquina de estados que combina los
-cuatro registros no introduce suficiente no linealidad, ya que hay correlaciones detectables
-entre la salida y los registros individuales.
+Ninguno de estos dos diseños ha resistido bien el paso del tiempo. A5/1 se diseñó en 1987 como parte del estándar GSM,
+pero su especificación se mantuvo en secreto durante más de una década bajo la premisa de que la oscuridad añadiría seguridad.
+En 1999, Briceno, Goldberg y Wagner consiguieron hacer ingeniería inversa del algoritmo a partir de un teléfono GSM,
+y ese mismo año Biryukov, Shamir y Wagner publicaron ataques que permitían recuperar
+la clave con un esfuerzo del orden de $2^{40}$ operaciones, muy por debajo de los $2^{64}$ que se suponía que ofrecía~\cite{biryukov2000}.
+Finalmente en 2010, Karsten Nohl demostró que con tablas arcoíris precomputadas se podían descifrar llamadas GSM
+en tiempo casi real usando un portátil y una radio definida por software. E0 tampoco aguantó demasiado.
+En 2004, Lu y Vaudenay publicaron un ataque que explota correlaciones condicionales
+entre la salida y los estados internos de los LFSR, reduciendo la complejidad real a unas $2^{38}$ operaciones
+con los primeros $2^{24}$ bits del keystream, muy lejos de los $2^{128}$ que la longitud de clave prometía~\cite{lu2004}.
+El problema es que la máquina de estados que combina los cuatro registros no introduce suficiente no linealidad,
+ya que hay correlaciones detectables entre la salida y los registros individuales.
 
-En los dos casos la causa del fallo es la misma: la construcción que combina los
-LFSR no consigue romper la linealidad lo bastante, y eso es explotable.
+En los dos casos la causa del fallo es la misma, ya que la construcción que combina los LFSR no consigue romper la linealidad lo bastante, y eso es explotable.
 
-El componente que aparece en prácticamente todos estos diseños es el \textbf{registro de
-desplazamiento con retroalimentación lineal}, conocido como LFSR (\textit{Linear Feedback
-Shift Register}). Un LFSR es un registro de $n$ celdas binarias cuyo siguiente estado se
-calcula como una combinación lineal (XOR) de algunas posiciones del estado actual,
-definidas por un \textbf{polinomio de retroalimentación}. Si el polinomio es primitivo
-sobre $\mathbb{F}_2$, el registro recorre los $2^n - 1$ estados no nulos antes de
-repetirse, generando secuencias con buenas propiedades estadísticas: distribución
-equilibrada de ceros y unos, buena autocorrelación y periodo largo~\cite{menezes1996}.
+El componente que aparece en prácticamente todos estos diseños es el \textbf{registro de desplazamiento con retroalimentación lineal},
+conocido como LFSR (\textit{Linear Feedback Shift Register}). Un LFSR es un registro de $n$ celdas binarias
+cuyo siguiente estado se calcula como una combinación lineal (XOR) de algunas posiciones del estado actual,
+definidas por un \textbf{polinomio de retroalimentación}. Si el polinomio es primitivo sobre $\mathbb{F}_2$,
+el registro recorre los $2^n - 1$ estados no nulos antes de repetirse, generando secuencias con buenas propiedades estadísticas,
+ya que tiene distribución equilibrada de ceros y unos, buena autocorrelación y periodo largo~\cite{menezes1996}.
 
-El problema es que la linealidad del LFSR también es su mayor debilidad. El algoritmo
-de Berlekamp-Massey~\cite{massey1969} permite reconstruir el polinomio de
-retroalimentación y el estado completo de un LFSR de grado $n$ a partir de solo $2n$
-bits de salida. Para un LFSR de grado 20, bastan los primeros 40 bits observados para romperlo por
-completo, da igual que su periodo supere el millón de bits. Un LFSR solo
-es inviable como generador criptográfico.
+El problema es que la linealidad del LFSR también es su mayor debilidad.
+El algoritmo de Berlekamp-Massey~\cite{massey1969} permite reconstruir el polinomio de retroalimentación y el estado completo
+de un LFSR de grado $n$ a partir de solo $2n$ bits de salida. Para un LFSR de grado 20,
+bastan los primeros 40 bits observados para romperlo por completo,
+da igual que su periodo supere el millón de bits. Un LFSR solo es inviable como generador criptográfico.
 
-Pero Berlekamp-Massey no es la única amenaza. Cuando se combinan varios LFSR, aparecen
-los \textbf{ataques de correlación}: si la salida del generador tiene dependencia
-estadística con alguno de los LFSR internos, un atacante puede aislarlo y atacarlo por
-separado~\cite{meier1994}. Este tipo de ataque es exactamente el que rompe el generador
-de Geffe, como se verá en el capítulo~\ref{cap:generadores}.
-
-Para resistir estos ataques se han ido proponiendo en esta memoria distintas construcciones que combinan
-varios LFSR o aplican transformaciones no lineales sobre sus salidas. Una de las
-primeras fue la de Geffe~\cite{geffe1973} en 1973, que usa un multiplexor controlado
-por un tercer LFSR para seleccionar la salida de uno de los otros dos. Con el tiempo
-se vio que era vulnerable a ataques de correlación, y se buscaron alternativas más
-robustas: el generador de paso alternado o ASG~\cite{gunther1987}, el generador de
-contracción~\cite{coppersmith1993} y el de autocontracción~\cite{meier1994}. En este
-trabajo se estudian estas cuatro construcciones.
+Berlekamp-Massey no es la única amenaza. Cuando se combinan varios LFSR, aparecen los \textbf{ataques de correlación},
+ya que si la salida del generador tiene dependencia estadística con alguno de los LFSR internos,
+un atacante puede aislarlo y atacarlo por separado~\cite{meier1994}. Este tipo de ataque es exactamente el que rompe el generador de Geffe,
+como se verá en el capítulo~\ref{cap:generadores}. Para resistir estos ataques se han ido proponiendo distintas construcciones que combinan varios LFSR
+o aplican transformaciones no lineales sobre sus salidas. Una de las primeras fue la de Geffe~\cite{geffe1973} en 1973,
+que usa un multiplexor controlado por un tercer LFSR para seleccionar la salida de uno de los otros dos.
+Con el tiempo se vio que era vulnerable a ataques de correlación, y se buscaron alternativas más robustas
+como el generador de paso alternado o ASG~\cite{gunther1987}, el generador de contracción~\cite{coppersmith1993}
+y el de autocontracción~\cite{meier1994}. En este trabajo se estudian estas cuatro construcciones.
 
 \section{Estado del arte}
 
-Tras los problemas de seguridad de A5/1 y E0, quedó claro que hacía falta encontrar cifrados de flujo
-nuevos y bien analizados. En 2004, la red europea de investigación ECRYPT lanzó el proyecto eSTREAM~\cite{estream2008},
-un concurso abierto para seleccionar nuevos cifrados de flujo divididos en dos perfiles:
-software (para procesadores de propósito general) y hardware (para circuitos con
-restricciones de área y consumo). El concurso se cerró en 2008 con un portafolio de
-siete algoritmos recomendados.
+Tras los problemas de seguridad de A5/1 y E0, quedó claro que hacía falta encontrar cifrados de flujo nuevos y bien analizados.
+En 2004, la red europea de investigación ECRYPT lanzó el proyecto eSTREAM~\cite{estream2008},
+un concurso abierto para seleccionar nuevos cifrados de flujo divididos en dos perfiles,
+software (para procesadores de propósito general) y hardware (para circuitos con restricciones de área y consumo).
+El concurso se cerró en 2008 con un portafolio de siete algoritmos recomendados.
 
-Lo interesante para este trabajo es que varios de los finalistas del perfil hardware
-siguen usando LFSR como componente base. Grain, por ejemplo, combina un LFSR de
-grado 80 con un registro de desplazamiento con retroalimentación no lineal (NLFSR) del
-mismo tamaño y una función booleana de filtrado. Trivium usa tres registros de
-desplazamiento de 93, 84 y 111 bits con realimentación cruzada no lineal entre ellos.
-En ambos casos se mantiene el LFSR como fuente de buenas propiedades estadísticas y
-de periodo, pero la seguridad la aporta la capa no lineal que se le añade encima.
+Lo interesante para este trabajo es que varios de los finalistas del perfil hardware siguen usando LFSR como componente base.
+Grain, por ejemplo, combina un LFSR de grado 80 con un registro de desplazamiento con retroalimentación no lineal (NLFSR)
+del mismo tamaño y una función booleana de filtrado. Trivium usa tres registros de desplazamiento de 93, 84 y 111 bits
+con realimentación cruzada no lineal entre ellos. En ambos casos se mantiene el LFSR como fuente de buenas propiedades estadísticas
+y de periodo, pero la seguridad la aporta la capa no lineal que se le añade encima. Esto muestra que los LFSR no se han abandonado como componente criptográfico,
+sino que la lección aprendida de A5/1 y E0 ha sido que la función que combina las salidas de los registros
+es lo que determina la seguridad del conjunto. Un LFSR bien elegido garantiza periodo largo y buenas propiedades estadísticas de base,
+pero si la combinación no rompe la linealidad de forma efectiva, el generador es vulnerable.
 
-Esto muestra que los LFSR no se han abandonado como componente criptográfico, sino que
-la lección aprendida de A5/1 y E0 ha sido que la función que combina las salidas de los
-registros es lo que determina la seguridad del conjunto. Un LFSR bien elegido garantiza
-periodo largo y buenas propiedades estadísticas de base, pero si la combinación no rompe
-la linealidad de forma efectiva, el generador es vulnerable.
+Los generadores que se estudian en este trabajo (Geffe, contracción, autocontracción y ASG)
+representan una generación anterior a eSTREAM y ninguno se usa hoy en día en aplicaciones reales.
+Pero son precisamente los que aparecen en los libros de texto de criptografía~\cite{menezes1996}
+como ejemplos de distintas estrategias para combinar LFSR, y estudiarlos permite entender qué principios de diseño funcionan
+y cuáles no antes de abordar construcciones más sofisticadas.
 
-Los generadores que se estudian en este trabajo (Geffe, contracción, autocontracción
-y ASG) representan una generación anterior a eSTREAM y ninguno se usa hoy en día en
-aplicaciones reales. Pero son precisamente los que aparecen en los libros de texto de
-criptografía~\cite{menezes1996} como ejemplos de distintas estrategias para combinar
-LFSR, y estudiarlos permite entender qué principios de diseño funcionan y cuáles no
-antes de abordar construcciones más sofisticadas.
-
-Desde el punto de vista experimental, la mayoría de publicaciones analizan cada
-generador de forma aislada en el contexto de su propuesta original. Comparaciones
-directas entre varios de ellos usando los mismos parámetros, midiendo complejidad
-lineal y pasando los mismos tests estadísticos NIST, no son tan habituales. Este
-trabajo intenta aportar esa comparación para estas cuatro construcciones concretas.
+Desde el punto de vista experimental, la mayoría de publicaciones analizan cada generador de forma aislada
+en el contexto de su propuesta original. Comparaciones directas entre varios de ellos usando los mismos parámetros,
+midiendo complejidad lineal y pasando los mismos tests estadísticos NIST, no son tan habituales.
+Este trabajo intenta aportar esa comparación para estas cuatro construcciones concretas.
 
 \section{Motivación}
 
-La teoría de los LFSR está bien cubierta en la literatura, pero la mayoría de
-publicaciones se centran en un único generador y lo analizan de forma aislada. Cuesta
-encontrar trabajos que pongan varios generadores lado a lado, con los mismos parámetros
-y los mismos tests, para comparar directamente cómo se comportan. Esa comparación es
-lo que me interesaba hacer: implementar cuatro generadores clásicos, medir su
-complejidad lineal con Berlekamp-Massey y pasar las secuencias por los tests del
-estándar NIST SP 800-22~\cite{nist2010} para ver si las diferencias teóricas se
-reflejan de verdad en la práctica.
+La teoría de los LFSR está bien cubierta en la literatura, pero la mayoría de publicaciones se centran en un único generador y lo analizan de forma aislada.
+Cuesta encontrar trabajos que pongan varios generadores lado a lado, con los mismos parámetros y los mismos tests,
+para comparar directamente cómo se comportan. Esa comparación es lo que me interesaba hacer,
+implementar cuatro generadores clásicos, medir su complejidad lineal con Berlekamp-Massey
+y pasar las secuencias por los tests del estándar NIST SP 800-22~\cite{nist2010}
+para ver si las diferencias teóricas se reflejan de verdad en la práctica.
 
-La elección de los cuatro generadores no es arbitraria. Tres de ellos (contracción,
-autocontracción y ASG) se consideran razonablemente robustos: tienen complejidad
-lineal alta y no se conocen ataques de correlación prácticos contra ellos. El cuarto,
-el generador de Geffe~\cite{geffe1973}, es un caso deliberadamente débil. Geffe
-aparece en todos los libros de texto porque fue una de las primeras propuestas para
-combinar LFSR de forma no lineal, pero tiene un problema conocido: su función de
-combinación tiene correlación $0{,}75$ con dos de los tres LFSR internos, lo que
-permite atacarlos por separado en vez de tener que romper el sistema completo. Incluir
-un generador que se sabe que falla es lo que permite ver qué distingue a un diseño
-seguro de uno vulnerable cuando se miran los resultados de los tests.
+La elección de los cuatro generadores no es arbitraria.
+Tres de ellos (contracción, autocontracción y ASG) se consideran razonablemente robustos,
+ya que tienen complejidad lineal alta y no se conocen ataques de correlación prácticos contra ellos.
+El cuarto, el generador de Geffe~\cite{geffe1973}, es un caso deliberadamente débil.
+Geffe aparece en todos los libros de texto porque fue una de las primeras propuestas para combinar LFSR de forma no lineal,
+pero tiene un problema conocido, ya que su función de combinación tiene correlación $0{,}75$ con dos de los tres LFSR internos,
+lo que permite atacarlos por separado en vez de tener que romper el sistema completo.
+Incluir un generador que se sabe que falla es lo que permite ver qué distingue a un diseño seguro de uno vulnerable
+cuando se miran los resultados de los tests.
 
-Los cuatro generadores representan estrategias muy distintas para introducir no
-linealidad. Geffe usa una función booleana que selecciona entre dos LFSR según el
-valor de un tercero. El generador de contracción descarta bits de un LFSR según la
-salida de otro, de forma que la secuencia resultante tiene longitud variable e
-impredecible. El de autocontracción lleva esta idea un paso más allá: un solo LFSR
-se utiliza a la vez como fuente de bits y como mecanismo de selección. Y el ASG
-alterna entre dos LFSR controlados por un tercero, produciendo un bit de uno u otro
-en cada ciclo según el valor del registro de control. Comparar estas cuatro
-estrategias con las mismas herramientas permite ver cuál resiste mejor y, sobre todo,
-entender por qué.
+Los cuatro generadores representan estrategias muy distintas para introducir no linealidad.
+Geffe usa una función booleana que selecciona entre dos LFSR según el valor de un tercero.
+El generador de contracción descarta bits de un LFSR según la salida de otro,
+de forma que la secuencia resultante tiene longitud variable e impredecible.
+El de autocontracción lleva esta idea un paso más allá, ya que un solo LFSR se utiliza a la vez como fuente de bits y como mecanismo de selección.
+Y el generador de ASG alterna entre dos LFSR controlados por un tercero,
+produciendo un bit de uno u otro en cada ciclo según el valor del registro de control.
+Comparar estas cuatro estrategias con las mismas herramientas permite ver cuál resiste mejor y, sobre todo, entender por qué.
 
 \subsection*{Implementación desde cero}
 
-Decidí implementar \textbf{todo el software desde cero en Python}, sin usar ninguna
-librería externa de criptografía. Esto incluye el LFSR, el algoritmo de
-Berlekamp-Massey, los cuatro generadores y los ocho tests estadísticos del estándar
-NIST SP 800-22.
+Decidí implementar \textbf{todo el software desde cero en Python}, sin usar ninguna librería externa de criptografía.
+Esto incluye el LFSR, el algoritmo de Berlekamp-Massey, los cuatro generadores y los ocho tests estadísticos del estándar NIST SP 800-22.
 
-Sé que existen librerías como \texttt{pylfsr} para los registros de desplazamiento o
-\texttt{nistrng} para los tests estadísticos. Usarlas habría simplificado bastante el
-desarrollo, pero el hecho de implementar todo desde cero hace que sea mucho mas fácil
-la legibilidad del código y la comprensión de lo que realmente hace cada parte.
-Si se usaran librerías externas, el código de esta memoria se limitaría a llamar a
-funciones de esas librerías sin que quede claro qué hay detrás de cada una.
-Por ejemplo, usar una función ya implementada de Berlekamp-Massey habría dado el
-resultado correcto, pero habría convertido gran parte del trabajo en una caja negra de
-la que se desconocería su funcionamiento interno.
+Sé que existen librerías como \texttt{pylfsr} para los registros de desplazamiento
+o \texttt{nistrng} para los tests estadísticos. Usarlas habría simplificado bastante el desarrollo,
+pero el hecho de implementar todo desde cero hace que sea mucho más fácil la legibilidad del código
+y la comprensión de lo que realmente hace cada parte. Si se usaran librerías externas,
+el código de esta memoria se limitaría a llamar a funciones de esas librerías sin que quede claro qué hay detrás de cada una.
+Por ejemplo, usar una función ya implementada de Berlekamp-Massey habría dado el resultado correcto,
+pero habría convertido gran parte del trabajo en una caja negra de la que se desconocería su funcionamiento interno.
 
-Con los tests NIST pasa algo parecido, codificar cada test te obliga a
-tener claro qué hipótesis estadística se está evaluando y qué significa realmente
-que una secuencia lo supere o lo falle.
-
-Además, al haber desarrollado el código desde cero, si algún resultado sale raro se puede
-ir directamente al código a ver qué está pasando.
+Con los tests NIST pasa algo parecido, ya que codificar cada test te obliga a tener claro qué hipótesis estadística se está evaluando
+y qué significa realmente que una secuencia lo supere o lo falle.
+Además, al haber desarrollado el código desde cero, si algún resultado sale raro se puede ir directamente al código a ver qué está pasando.
 
 \section{Metodología}
 
-El análisis sigue el mismo esquema para los cuatro generadores. Cada uno se configura
-con LFSR cuyos polinomios de retroalimentación son primitivos sobre $\mathbb{F}_2$ y
-con estados iniciales distintos de cero. Con esa configuración se genera una secuencia
-de bits lo bastante larga para que los tests estadísticos sean fiables. Después se
-mide la complejidad lineal con Berlekamp-Massey (esto da una idea directa de cuántos
-bits necesitaría un atacante para reconstruir el generador) y se pasan los ocho tests
-NIST seleccionados. Al final comparo los resultados entre los cuatro generadores para
-ver si las diferencias teóricas se reflejan en la práctica.
+El análisis sigue el mismo esquema para los cuatro generadores.
+Cada uno se configura con LFSR cuyos polinomios de retroalimentación son primitivos sobre $\mathbb{F}_2$
+y con estados iniciales distintos de cero. Con esa configuración se genera una secuencia de bits lo bastante larga
+para que los tests estadísticos sean fiables. Después se mide la complejidad lineal con Berlekamp-Massey
+(esto da una idea directa de cuántos bits necesitaría un atacante para reconstruir el generador)
+y se pasan los ocho tests NIST seleccionados. Al final comparo los resultados entre los cuatro generadores
+para ver si las diferencias teóricas se reflejan en la práctica.
 
-En concreto, el proceso para cada generador tiene tres fases:
+En concreto, el proceso para cada generador tiene tres fases.
 
 \begin{enumerate}
-  \item \textbf{Generación de la secuencia}: se configura el generador con LFSR de
-        grados coprimos entre sí (para maximizar el periodo del sistema combinado) y
-        se genera una secuencia de 5000 bits. Esta longitud es un compromiso: lo
-        bastante larga para que los tests NIST tengan potencia estadística suficiente,
-        pero no tanto como para que el cálculo de la complejidad lineal con
-        Berlekamp-Massey (que es $O(N^2)$) sea demasiado lento.
-  \item \textbf{Análisis de complejidad lineal}: se aplica Berlekamp-Massey a la
-        secuencia completa y se obtiene tanto la complejidad lineal final como el
-        perfil de complejidad lineal, que muestra cómo evoluciona esta medida a lo
-        largo de la secuencia. Una secuencia criptográficamente fuerte debería tener
-        un perfil que crece de forma sostenida cerca de la recta $N/2$.
-  \item \textbf{Tests estadísticos NIST}: se pasan los ocho tests seleccionados del
-        estándar NIST SP 800-22 con un nivel de significación $\alpha = 0{,}01$. Cada
-        test calcula un p-valor: si es mayor que $\alpha$, la secuencia supera el test;
-        si es menor, se considera que la secuencia tiene alguna debilidad estadística
-        detectable por ese test concreto.
+  \item \textbf{Generación de la secuencia}. Se configura el generador con LFSR de grados coprimos entre sí
+        (para maximizar el periodo del sistema combinado) y se genera una secuencia de 5000 bits.
+        Esta longitud es un compromiso, ya que tiene que ser lo bastante larga
+        para que los tests NIST tengan potencia estadística suficiente,
+        pero no tanto como para que el cálculo de la complejidad lineal con Berlekamp-Massey (que es $O(N^2)$) sea demasiado lento.
+  \item \textbf{Análisis de complejidad lineal}. Se aplica Berlekamp-Massey a la secuencia completa
+        y se obtiene tanto la complejidad lineal final como el perfil de complejidad lineal,
+        que muestra cómo evoluciona esta medida a lo largo de la secuencia.
+        Una secuencia criptográficamente fuerte debería tener un perfil que crece de forma sostenida cerca de la recta $N/2$.
+  \item \textbf{Tests estadísticos NIST}. Se pasan los ocho tests seleccionados del estándar NIST SP 800-22
+        con un nivel de significación $\alpha = 0{,}01$. Cada test calcula un p-valor, y si es mayor que $\alpha$, la secuencia supera el test.
+        Si es menor, se considera que la secuencia tiene alguna debilidad estadística detectable por ese test concreto.
 \end{enumerate}
 
-Los parámetros concretos (grados de los LFSR, longitud de las secuencias, nivel de
-significación de los tests) se detallan en el capítulo~\ref{cap:analisis}. La idea es
-mantener condiciones comparables entre generadores para que las diferencias en los
-resultados se deban al diseño de cada construcción y no a la configuración experimental.
+Los parámetros concretos (grados de los LFSR, longitud de las secuencias, nivel de significación de los tests)
+se detallan en el capítulo~\ref{cap:analisis}.
+La idea es mantener condiciones comparables entre generadores para que las diferencias en los resultados
+se deban al diseño de cada construcción y no a la configuración experimental.
 
-Los resultados se presentan de dos formas. Para la complejidad lineal se muestra tanto
-el valor final como el perfil completo, que permite ver a simple vista si la complejidad
-crece de forma regular (como esperaríamos de una secuencia aleatoria) o si se estanca
-en valores bajos (lo que indicaría que el generador es vulnerable a Berlekamp-Massey).
-Para los tests NIST se genera una tabla resumen con el p-valor de cada generador en
-cada test y la indicación de si lo supera o no. Esta presentación uniforme es la que
-permite comparar los generadores de forma directa y ver en qué tests concretos falla
-cada uno.
+Los resultados se presentan de dos formas. Para la complejidad lineal se muestra tanto el valor final como el perfil completo,
+que permite ver a simple vista si la complejidad crece de forma regular (como esperaríamos de una secuencia aleatoria)
+o si se estanca en valores bajos (lo que indicaría que el generador es vulnerable a Berlekamp-Massey).
+Para los tests NIST se genera una tabla resumen con el p-valor de cada generador en cada test
+y la indicación de si lo supera o no. Esta presentación uniforme es la que permite comparar los generadores de forma directa
+y ver en qué tests concretos falla cada uno.
 
 \section{Herramientas}
 
-El código está escrito en Python~3. En este trabajo importa más poder leer el código
-y verificar que es correcto que exprimir el rendimiento, y las secuencias que genero
-no son tan largas como para que el tiempo de ejecución sea un problema.
+El código está escrito en Python~3. En este trabajo importa más poder leer el código y verificar que es correcto
+que exprimir el rendimiento, y las secuencias que genero no son tan largas como para que el tiempo de ejecución sea un problema.
 
-Como dependencias externas uso \texttt{scipy} para las funciones de distribución que
-necesitan los tests estadísticos (en particular la función gamma incompleta y la
-distribución chi-cuadrado), \texttt{numpy} para operaciones sobre arrays de bits y
-\texttt{matplotlib} para las gráficas de resultados. Los tests unitarios se ejecutan
-con \texttt{pytest}, que uso diariamente en el trabajo y permite escribir tests
-de forma directa. Para cada módulo del proyecto hay tests unitarios que comprueban
-los casos básicos: que un LFSR con polinomio primitivo genera una secuencia de
-periodo máximo, que Berlekamp-Massey recupera el polinomio correcto a partir de la
-secuencia, que cada generador produce la salida esperada para un estado inicial
-conocido, y que cada test NIST da resultados coherentes con secuencias de referencia.
+Como dependencias externas uso \texttt{scipy} para las funciones de distribución que necesitan los tests estadísticos
+(en particular la función gamma incompleta y la distribución chi-cuadrado), \texttt{numpy} para operaciones sobre arrays de bits
+y \texttt{matplotlib} para las gráficas de resultados. Los tests unitarios se ejecutan con \texttt{pytest},
+que uso diariamente en el trabajo y permite escribir tests de forma directa.
+Para cada módulo del proyecto hay tests unitarios que comprueban los casos básicos, como que un LFSR con polinomio
+primitivo genera una secuencia de periodo máximo, que Berlekamp-Massey recupera el polinomio correcto a partir de la secuencia,
+que cada generador produce la salida esperada para un estado inicial conocido, y que cada test NIST da resultados coherentes con secuencias de referencia.
 
-El código fuente está disponible en un repositorio público de GitHub. Para el control
-de versiones uso Git con dos ramas de desarrollo separadas: \texttt{feat/code} para
-la implementación y \texttt{feat/docs} para la documentación. Esta separación permite
-trabajar en el código y en la memoria de forma independiente sin que los cambios de
-una parte interfieran con la otra. La estructura del repositorio separa el código
-fuente (\texttt{src/}), los tests (\texttt{tests/}), los resultados
-(\texttt{results/}) y la documentación (\texttt{docs/}).
+El código fuente está disponible en un repositorio público de GitHub.
+Para el control de versiones uso Git con dos ramas de desarrollo separadas, \texttt{feat/code} para la implementación
+y \texttt{feat/docs} para la documentación/memoria. Esta separación permite trabajar en el código y en la memoria de forma independiente
+sin que los cambios de una parte interfieran con la otra. La estructura del repositorio separa el código fuente (\texttt{src/}),
+los tests (\texttt{tests/}), los resultados (\texttt{results/}) y la documentación (\texttt{docs/}).
 
-La memoria está escrita en \LaTeX{} utilizando la plantilla oficial de la ETSIIT de la
-Universidad de Granada. La elección de \LaTeX{} frente a un procesador de textos
-convencional viene motivada por la cantidad de notación matemática que tiene el
-trabajo: fórmulas en $\mathbb{F}_2$, polinomios, expresiones de complejidad lineal,
-tablas de evolución de registros y diagramas. \LaTeX{} maneja todo esto de forma
-nativa y produce un resultado tipográfico bastante mejor que el de alternativas como
-Word o Google Docs, especialmente cuando hay fórmulas y tablas en casi todas las
-páginas.
+La memoria está escrita en \LaTeX{} utilizando la plantilla oficial de la ETSIIT de la Universidad de Granada.
+La elección de \LaTeX{} frente a un procesador de textos convencional viene motivada por la cantidad de notación matemática
+que tiene el trabajo, ya que hay fórmulas en $\mathbb{F}_2$, polinomios, expresiones de complejidad lineal,
+tablas de evolución de registros y diagramas. \LaTeX{} maneja todo esto de forma nativa
+y produce un resultado tipográfico bastante mejor que el de alternativas como Word o Google Docs,
+especialmente cuando hay fórmulas y tablas en casi todas las páginas.
 
 \section{Alcance}
 
-Este trabajo se centra en la complejidad lineal y las propiedades estadísticas de
-cuatro generadores basados en LFSR. No entro en ataques algebraicos ni en los de
-\textit{time-memory tradeoff}, que darían para otro trabajo aparte. Tampoco analizo
-la seguridad en un escenario de cifrado completo con gestión de claves, ni hay
-implementación hardware: lo que me interesa es la calidad criptográfica de las
-secuencias, no el rendimiento en un circuito. Tampoco se incluyen construcciones más
-recientes como Trivium o Grain, que aunque están basadas en registros de desplazamiento
-son diseños considerablemente más complejos y su análisis requeriría herramientas
-distintas de las que se desarrollan aquí. El interés de centrarse en los cuatro
-generadores clásicos es que son lo bastante sencillos como para entender completamente
-su funcionamiento y sus debilidades, y a la vez lo bastante variados como para que la
-comparación entre ellos resulte útil.
+Este trabajo se centra en la complejidad lineal y las propiedades estadísticas de cuatro generadores basados en LFSR.
+No entro en ataques algebraicos ni en los de \textit{time-memory tradeoff}, que darían para otro trabajo aparte.
+Tampoco analizo la seguridad en un escenario de cifrado completo con gestión de claves, ni hay implementación hardware,
+ya que lo que me interesa es la calidad criptográfica de las secuencias, no el rendimiento en un circuito.
+Tampoco se incluyen construcciones más recientes como Trivium o Grain,
+que aunque están basadas en registros de desplazamiento son diseños considerablemente más complejos
+y su análisis requeriría herramientas distintas de las que se desarrollan aquí.
+El interés de centrarse en los cuatro generadores clásicos es que son lo bastante sencillos
+como para entender completamente su funcionamiento y sus debilidades,
+y a la vez lo bastante variados como para que la comparación entre ellos resulte útil.
 
-De los quince tests que define el estándar NIST SP 800-22, implemento ocho. Los
-seleccionados son: test de frecuencia (monobit), test de frecuencia dentro de bloques,
-test de rachas, test de rachas dentro de bloques, test de rango de matriz binaria,
-test espectral (DFT), test de complejidad lineal y test de entropía aproximada. Los
-siete restantes (Maurer's universal, cumulative sums, random excursions y sus
-variantes, serial y overlapping template matching) se han dejado fuera por distintas
-razones: algunos requieren secuencias considerablemente más largas de las que genero,
-y otros evalúan propiedades que en el contexto de generadores basados en LFSR resultan
-redundantes con los ocho que sí se implementan.
+De los quince tests que define el estándar NIST SP 800-22, implemento ocho.
+Los seleccionados son el test de frecuencia (monobit), el test de frecuencia dentro de bloques, el test de rachas,
+el test de rango de matriz binaria, el test universal de Maurer, el test serial, el test espectral (DFT)
+y el test de complejidad lineal. Los siete restantes (cumulative sums, random excursions y sus variantes,
+approximate entropy, overlapping template matching y longest run of ones)
+se han dejado fuera por distintas razones, ya que algunos requieren secuencias considerablemente más largas de las que genero,
+y otros evalúan propiedades que en el contexto de generadores basados en LFSR resultan redundantes con los ocho que sí se implementan.
 
 \section{Objetivos}
 
-Los objetivos de este trabajo son:
+Los objetivos de este trabajo son los siguientes.
 
 \begin{itemize}
-  \item Implementar desde cero un LFSR genérico y el algoritmo de Berlekamp-Massey
-        en Python.
-  \item Implementar los cuatro generadores estudiados: Geffe, Shrinking, Self-Shrinking
-        y Alternating Step Generator (ASG).
-  \item Analizar la complejidad lineal de las secuencias generadas y comprobar si
-        coincide con las cotas teóricas.
-  \item Pasar ocho tests estadísticos del NIST SP 800-22 a las secuencias de cada
-        generador y comparar los resultados entre ellos.
+  \item Implementar desde cero un LFSR genérico y el algoritmo de Berlekamp-Massey en Python.
+  \item Implementar los cuatro generadores estudiados, Geffe, Shrinking, Self-Shrinking y Alternating Step Generator (ASG).
+  \item Analizar la complejidad lineal de las secuencias generadas y comprobar si coincide con las cotas teóricas.
+  \item Pasar ocho tests estadísticos del NIST SP 800-22 a las secuencias de cada generador y comparar los resultados entre ellos.
   \item Sacar conclusiones sobre qué generadores ofrecen mejores garantías de seguridad
         y justificar por qué a partir de los resultados obtenidos.
 \end{itemize}
 
 \section{Estructura de la memoria}
 
-La memoria se organiza en cinco capítulos. Tras esta introducción, el
-capítulo~\ref{cap:fundamentos} presenta los fundamentos teóricos necesarios: la
-aritmética en el cuerpo $\mathbb{F}_2$, la definición y propiedades de los LFSR,
-las secuencias de longitud máxima, la complejidad lineal y el algoritmo de
-Berlekamp-Massey. Se incluyen también los criterios que debe cumplir una buena
-secuencia cifrante y un repaso de los principales tipos de ataques a generadores
-basados en LFSR.
+La memoria se organiza en cinco capítulos. Tras esta introducción, el capítulo~\ref{cap:fundamentos} presenta los fundamentos teóricos necesarios,
+la aritmética en el cuerpo $\mathbb{F}_2$, la definición y propiedades de los LFSR, las secuencias de longitud máxima,
+la complejidad lineal y el algoritmo de Berlekamp-Massey.
+Se incluyen también los criterios que debe cumplir una buena secuencia cifrante y un repaso de los principales tipos de ataques a generadores basados en LFSR.
 
-El capítulo~\ref{cap:generadores} describe los cuatro generadores estudiados: cómo
-funciona cada uno, qué propiedades teóricas de seguridad tiene y qué decisiones de
-implementación se han tomado. El capítulo~\ref{cap:analisis} presenta los
-experimentos: la configuración utilizada, los resultados de complejidad lineal, los
-tests NIST y la comparación entre generadores. El último capítulo recoge las
-conclusiones del trabajo y las líneas que quedarían abiertas para futuros trabajos.
+El capítulo~\ref{cap:generadores} describe los cuatro generadores estudiados, cómo funciona cada uno,
+qué propiedades teóricas de seguridad tiene y qué decisiones de implementación se han tomado.
+El capítulo~\ref{cap:analisis} presenta los experimentos, la configuración utilizada, los resultados de complejidad lineal,
+los tests NIST y la comparación entre generadores. El último capítulo recoge las conclusiones del trabajo
+y las posibilidades que quedarían abiertas para futuros trabajos.
