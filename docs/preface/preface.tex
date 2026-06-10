@@ -16,14 +16,10 @@ Joaquín Sergio García Ibáñez\\
 \vspace{0.7cm}
 \noindent{\textbf{Resumen}}\\
 
-Los registros de desplazamiento con retroalimentación lineal (LFSR) son la base de muchos
-generadores de secuencias cifrantes usados en criptografía de flujo. Por sí solos presentan
-vulnerabilidades graves, en particular frente al algoritmo de Berlekamp-Massey, que permite
-reconstruir el registro completo a partir de un número pequeño de bits observados. Este trabajo
-analiza cuatro generadores basados en LFSR ---Geffe, Shrinking, Self-Shrinking y Alternating
-Step--- comparando su complejidad lineal y su comportamiento frente a los tests estadísticos
-NIST SP 800-22. El objetivo es identificar cuáles ofrecen mejores garantías de seguridad y
-entender por qué.
+Los registros de desplazamiento con retroalimentación lineal (LFSR) son la base de muchos generadores de secuencias cifrantes usados en criptografía de flujo.
+Por sí solos presentan vulnerabilidades graves, en particular frente al algoritmo de Berlekamp-Massey, que permite reconstruir el registro completo a partir de un número pequeño de bits observados.
+Este trabajo analiza cuatro generadores basados en LFSR Geffe, Shrinking, Self-Shrinking y Alternating Step comparando su complejidad lineal y su comportamiento frente a los tests estadísticos
+NIST SP 800-22. El objetivo es identificar cuáles ofrecen mejores garantías de seguridad y entender por qué.
 
 \cleardoublepage
 
@@ -41,23 +37,18 @@ Joaquín Sergio García Ibáñez\\
 \vspace{0.7cm}
 \noindent{\textbf{Abstract}}\\
 
-Linear Feedback Shift Registers (LFSRs) are the building block of many keystream generators
-used in stream ciphers. On their own they have serious weaknesses, most notably against the
-Berlekamp-Massey algorithm, which can reconstruct the register from a short observed sequence.
-This thesis analyses four LFSR-based generators ---Geffe, Shrinking, Self-Shrinking and
-Alternating Step--- comparing their linear complexity and statistical behaviour using the NIST
-SP 800-22 test suite. The goal is to identify which ones provide stronger security guarantees
-and to understand the reasons behind the differences.
+Linear Feedback Shift Registers (LFSRs) are the building block of many keystream generators used in stream ciphers.
+On their own they have serious weaknesses, most notably against the Berlekamp-Massey algorithm, which can reconstruct the register from a short observed sequence.
+This thesis analyses four LFSR-based generators Geffe, Shrinking, Self-Shrinking and Alternating Step comparing their linear complexity and statistical behaviour using the NIST
+SP 800-22 test suite. The goal is to identify which ones provide stronger security guarantees and to understand the reasons behind the differences.
 
 \chapter*{}
 \thispagestyle{empty}
 
 \noindent\rule[-1ex]{\textwidth}{2pt}\\[4.5ex]
 
-Yo, \textbf{Joaquín Sergio García Ibáñez}, alumno de la titulación Grado en Ingeniería
-Informática de la \textbf{Escuela Técnica Superior de Ingenierías Informática y de
-Telecomunicación de la Universidad de Granada}, autorizo la ubicación de la siguiente copia
-de mi Trabajo Fin de Grado en la biblioteca del centro para que pueda ser consultada por las
+Yo, \textbf{Joaquín Sergio García Ibáñez}, alumno de la titulación Grado en Ingeniería Informática de la \textbf{Escuela Técnica Superior de Ingenierías Informática y de
+Telecomunicación de la Universidad de Granada}, autorizo la ubicación de la siguiente copia de mi Trabajo Fin de Grado en la biblioteca del centro para que pueda ser consultada por las
 personas que lo deseen.
 
 \vspace{6cm}
@@ -83,9 +74,8 @@ D. \textbf{Jesús García Miranda}, Profesor del Departamento de Álgebra de la 
 
 \vspace{0.5cm}
 
-Que el presente trabajo, titulado \textit{\textbf{Análisis de seguridad y optimización de
-generadores pseudoaleatorios basados en LFSR}}, ha sido realizado bajo su supervisión por
-\textbf{Joaquín Sergio García Ibáñez}, y autoriza la defensa de dicho trabajo ante el tribunal
+Que el presente trabajo, titulado \textit{\textbf{Análisis de seguridad y optimización de generadores pseudoaleatorios basados en LFSR}},
+ha sido realizado bajo su supervisión por \textbf{Joaquín Sergio García Ibáñez}, y autoriza la defensa de dicho trabajo ante el tribunal
 que corresponda.
 
 \vspace{0.5cm}
@@ -105,17 +95,12 @@ Y para que conste, expide y firma el presente informe en Granada a \myTime
 
 \vspace{1cm}
 
-A mi tutor, Jesús García Miranda, por aceptar dirigir este trabajo y por las
-indicaciones y correcciones a lo largo del proceso.
+A mi tutor, Jesús García Miranda, por aceptar dirigir este trabajo y por las indicaciones y correcciones a lo largo del proceso,
+además ha sido un gran profesor a lo largo de mi etapa académica, dandome tutorias y ayudandome con cualquier duda que surgiera a la hora que fuera.
 
-A mi familia, por el apoyo durante todo el grado y especialmente en esta etapa
-final, en la que el TFG ha convivido con la jornada laboral. La mayor parte de
-estas páginas se han escrito al volver del trabajo, y sin esa paciencia en casa
-no habría sido posible.
+A mi familia, por el apoyo durante toda mi etapa académica y especialmente en esta etapa final, en la que el TFG ha convivido con mi jornada laboral.
+La mayor parte de estas páginas se han escrito al terminar el trabajo, y sin esa paciencia en casa no habría sido posible.
 
-Por último, una mención al equipo de Wazuh, donde he trabajado a lo largo de
-este último año. Allí aprendí a usar Git y a llevar el control de versiones de
-un proyecto real, dos cosas que he podido aplicar directamente a este TFG con
-ramas separadas para código y memoria, commits ordenados y un repositorio que
-sirve a la vez como entregable y como historial del desarrollo.
-
+Por último, una mención al equipo de mi empresa, donde he trabajado a lo largo de este último año. Allí aprendí a usar Git y a llevar el control de versiones de
+un proyecto real, dos cosas que he podido aplicar directamente a este TFG y que he podido seguir aprendiendo en este proyecto, con ramas separadas para código y memoria,
+commits ordenados y un repositorio que sirve a la vez como entregable y como historial del desarrollo.
