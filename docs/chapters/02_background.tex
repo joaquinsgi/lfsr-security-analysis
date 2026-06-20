@@ -180,7 +180,7 @@ Esperamos un periodo de $2^3 - 1 = 7$ y la secuencia $\{0, 0, 1, 1, 1, 0, 1\}$ q
 El periodo coincide con el teórico y la secuencia es exactamente la que calculamos a mano en la tabla anterior.
 Esta es la base sobre la que vamos a construir los generadores del capítulo siguiente.
 
-\subsection{Periodo y propiedades de Golomb}
+\subsection{Periodo y postulados de Golomb}
 
 La secuencia de salida de un LFSR es siempre periódica, ya que el registro tiene un número finito de estados.
 El estado todo-ceros es un punto fijo (la retroalimentación XOR daría siempre 0) y se descarta, así que quedan $2^n - 1$ estados útiles.
@@ -348,9 +348,15 @@ que define quince tests orientados cada uno a detectar un tipo distinto de desvi
 La idea común a todos es un \textbf{contraste de hipótesis}. La hipótesis nula $H_0$ es que la secuencia viene de un proceso verdaderamente aleatorio.
 Cada test analiza una propiedad concreta (balance, rachas, rango de submatrices, espectro, etc.) y calcula un \textbf{p-valor} que mide cuánto se desvía lo observado de lo esperado bajo $H_0$.
 
+El p-valor es la probabilidad de que una secuencia verdaderamente aleatoria produjera una desviación igual o mayor que la que hemos medido.
+Dicho de otra forma, responde a si lo observado es compatible con el puro azar.
+Un p-valor de $0{,}40$ quiere decir que cuatro de cada diez secuencias aleatorias se desviarían al menos tanto como la nuestra,
+así que lo medido es de lo más normal. Un p-valor de $0{,}001$ quiere decir que solo una de cada mil lo haría,
+y entonces resulta más creíble que la secuencia arrastre algún sesgo que pensar que ha sido mala suerte.
+
 Si el p-valor es mayor que el nivel de significación $\alpha$ (en este trabajo $\alpha = 0{,}01$), la secuencia supera el test.
 Si es menor, se rechaza por tener una desviación detectable. Conviene tener claro que superar un test no demuestra aleatoriedad,
 solo que no se detecta una desviación en esa propiedad concreta.
 
-En el capítulo~\ref{cap:analisis} se implementan ocho de los quince tests (monobit, frecuencia en bloques, rachas, rango de matriz binaria, Maurer, serial, espectral y complejidad lineal).
+En el capítulo~\ref{cap:analisis} se implementan y se explican ocho de los quince tests (monobit, frecuencia en bloques, rachas, rango de matriz binaria, Maurer, serial, espectral y complejidad lineal).
 Para cada uno se incluye el código, los parámetros usados y un ejemplo de ejecución sobre las secuencias de los cuatro generadores.

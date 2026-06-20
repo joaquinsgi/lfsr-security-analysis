@@ -18,6 +18,17 @@ y la expanden con un generador pseudoaleatorio hasta obtener un \textit{keystrea
 La seguridad ya no es perfecta, pero si el generador está bien diseñado, distinguir el keystream de una secuencia
 verdaderamente aleatoria debería ser computacionalmente imposible.
 
+Una secuencia pseudoaleatoria es la que parece aleatoria a todos los efectos prácticos (no se le ven patrones, los ceros y unos están repartidos,
+no hay forma evidente de adivinar el bit siguiente) pero que en realidad se genera con un algoritmo determinista a partir de una semilla.
+Dadas la misma semilla y el mismo generador, la secuencia sale siempre idéntica, y esa reproducibilidad es justo lo que la hace útil,
+ya que quien cifra y quien descifra pueden recrear el mismo keystream sin tener que intercambiarlo entero.
+
+La pregunta natural es a partir de cuándo se considera que una secuencia parece aleatoria.
+Ninguna secuencia es aleatoria por sí sola, lo que se hace es comparar su comportamiento con el que tendría una verdaderamente aleatoria y comprobar que no se aleja demasiado.
+Esa comparación da una escala para calibrar. Por un lado la complejidad lineal, que en una secuencia aleatoria de $N$ bits ronda $N/2$ y sirve de referencia para saber si la nuestra se queda corta.
+Por otro las baterías de tests estadísticos, que ponen un umbral concreto por debajo del cual la desviación deja de ser atribuible al azar.
+Los dos mecanismos se desarrollan más adelante, pero la idea de fondo es que aleatorio no es un sí o un no, sino cuánto se parece la secuencia a lo que esperaríamos del azar.
+
 En la práctica, la mayoría de cifrados de flujo diseñados para hardware se han basado en LFSR.
 La razón es sencilla, ya que un LFSR se implementa con flip-flops y puertas XOR, que son los componentes más baratos que existen en un circuito digital.
 La teoría matemática detrás de los LFSR está muy desarrollada (polinomios primitivos, secuencias de longitud máxima, autocorrelación),
@@ -184,16 +195,23 @@ y ver en qué tests concretos falla cada uno.
 
 \section{Herramientas}
 
-El código está escrito en Python~3. En este trabajo importa más poder leer el código y verificar que es correcto
-que exprimir el rendimiento, y las secuencias que genero no son tan largas como para que el tiempo de ejecución sea un problema.
+El código está escrito en Python~3. La elección viene sobre todo de que en este trabajo se ha intentado darle mas importancia a poder leer el código
+de forma clara y verificar que es correcto que a exprimir el rendimiento. Python es un lenguaje conciso y de sintaxis clara,
+así que un algoritmo como Berlekamp-Massey o un test estadístico se lee casi como su descripción en pseudocódigo,
+y eso ayuda a seguir paso a paso lo que hace cada parte y a contrastarlo con la teoría.
+Además tiene un ecosistema muy sólido de librerías estadísticas, que es justo lo que pide este análisis,
+y es el lenguaje con el que trabajo a diario, así que he podido centrarme en el problema y no en tener problemas con el lenguaje.
+Como las secuencias que se generan no son tan largas, el tiempo de ejecución no llega a ser un problema.
 
-Como dependencias externas uso \texttt{scipy} para las funciones de distribución que necesitan los tests estadísticos
-(en particular la función gamma incompleta y la distribución chi-cuadrado), \texttt{numpy} para operaciones sobre arrays de bits
-y \texttt{matplotlib} para las gráficas de resultados. Los tests unitarios se ejecutan con \texttt{pytest},
-que uso diariamente en el trabajo y permite escribir tests de forma directa.
-Para cada módulo del proyecto hay tests unitarios que comprueban los casos básicos, como que un LFSR con polinomio
-primitivo genera una secuencia de periodo máximo, que Berlekamp-Massey recupera el polinomio correcto a partir de la secuencia,
-que cada generador produce la salida esperada para un estado inicial conocido, y que cada test NIST da resultados coherentes con secuencias de referencia.
+Conviene aclarar qué papel juega cada dependencia externa, porque todo lo que es criptografía está implementado desde cero
+y las librerías que sí uso son de propósito general. Uso \texttt{scipy} para las funciones de distribución que necesitan los tests estadísticos,
+ya que son funciones numéricas estándar cuya reimplementación a mano sería delicada y fácil de estropear sin aportar nada al análisis.
+Uso \texttt{numpy} para las operaciones sobre arrays de bits, que en tests como el de rango de matriz o el espectral
+dejan el código más claro y rápido que trabajar con listas a mano. \texttt{matplotlib} se encarga de las gráficas de resultados,
+como los perfiles de complejidad lineal, y los tests unitarios se ejecutan con \texttt{pytest}.
+Para cada módulo del proyecto hay tests unitarios que comprueban los casos básicos, como que un LFSR con polinomio primitivo genera una secuencia de periodo máximo,
+que Berlekamp-Massey recupera el polinomio correcto a partir de la secuencia, que cada generador produce la salida esperada para un estado inicial conocido,
+y que cada test NIST da resultados coherentes con secuencias de referencia.
 
 El código fuente está disponible en un repositorio público de GitHub.
 Para el control de versiones uso Git con dos ramas de desarrollo separadas, \texttt{feat/code} para la implementación
@@ -207,6 +225,9 @@ que tiene el trabajo, ya que hay fórmulas en $\mathbb{F}_2$, polinomios, expres
 tablas de evolución de registros y diagramas. \LaTeX{} maneja todo esto de forma nativa
 y produce un resultado tipográfico bastante mejor que el de alternativas como Word o Google Docs,
 especialmente cuando hay fórmulas y tablas en casi todas las páginas.
+A esto se suma la forma de hacer la bibliografía, ya que \LaTeX{} mantiene las referencias en un fichero aparte
+y se encarga solo de numerarlas, citarlas en el texto y dar un formato uniforme a la lista final,
+algo que a mano resulta complicado.
 
 Durante el desarrollo me he apoyado en un asistente de inteligencia artificial (un modelo de lenguaje) como herramienta de revisión,
 tanto del código como de la redacción de la memoria. En el código lo he usado para repasar implementaciones ya escritas
