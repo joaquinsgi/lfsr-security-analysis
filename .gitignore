@@ -11,3 +11,15 @@ venv/
 .idea/
 .vscode/
 *.swp
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.pdf
+texput.log

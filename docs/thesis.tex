@@ -1,0 +1,176 @@
+\documentclass[a4paper,11pt]{book}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{xspace}
+
+\decimalpoint
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{\esperiod}{-1}}
+\makeatletter
+\addto\shorthandsspanish{\let\esperiod\es@period@code}
+\makeatother
+
+\RequirePackage{verbatim}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{afterpage}
+\usepackage{longtable}
+\usepackage[pdfborder={000}]{hyperref}
+
+\newcommand{\myTitle}{Análisis de seguridad y optimización de generadores pseudoaleatorios basados en LFSR\xspace}
+\newcommand{\myDegree}{Grado en Ingeniería Informática\xspace}
+\newcommand{\myName}{Joaquín Sergio García Ibáñez\xspace}
+\newcommand{\myProf}{Jesús García Miranda\xspace}
+\newcommand{\myFaculty}{Escuela Técnica Superior de Ingenierías Informática y de Telecomunicación\xspace}
+\newcommand{\myFacultyShort}{E.T.S. de Ingenierías Informática y de Telecomunicación\xspace}
+\newcommand{\myDepartment}{Departamento de Álgebra\xspace}
+\newcommand{\myUni}{\protect{Universidad de Granada}\xspace}
+\newcommand{\myLocation}{Granada\xspace}
+\newcommand{\myTime}{\today\xspace}
+
+\hypersetup{
+pdfauthor = {\myName},
+pdftitle = {\myTitle},
+pdfsubject = {Criptografía, LFSR, generadores pseudoaleatorios},
+pdfkeywords = {LFSR, Berlekamp-Massey, complejidad lineal, generadores de flujo, criptografía},
+pdfcreator = {LaTeX},
+pdfproducer = {pdflatex}
+}
+
+\usepackage{url}
+\usepackage{colortbl,longtable}
+\usepackage[stable]{footmisc}
+
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LO]{\leftmark}
+\fancyhead[RE]{\rightmark}
+\fancyhead[RO,LE]{\textbf{\thepage}}
+\renewcommand{\chaptermark}[1]{\markboth{\textbf{#1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\textbf{\thesection. #1}}}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\newtheorem{definicion}{Definición}[chapter]
+\newtheorem{ejemplo}{Ejemplo}[chapter]
+\newtheorem{proposicion}{Proposición}[chapter]
+
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+\definecolor{gray30}{gray}{.94}
+
+\lstset{
+  frame=Ltb,
+  framerule=0.5pt,
+  aboveskip=0.5cm,
+  framextopmargin=3pt,
+  framexbottommargin=3pt,
+  framexleftmargin=0.1cm,
+  framesep=0pt,
+  rulesep=.4pt,
+  backgroundcolor=\color{gray97},
+  rulesepcolor=\color{black},
+  stringstyle=\ttfamily,
+  showstringspaces=false,
+  basicstyle=\scriptsize\ttfamily,
+  commentstyle=\color{gray45},
+  keywordstyle=\bfseries,
+  numbers=left,
+  numbersep=6pt,
+  numberstyle=\tiny,
+  numberfirstline=false,
+  breaklines=true,
+}
+
+\lstdefinestyle{Python}{
+  basicstyle=\small\ttfamily,
+  frame=single,
+  language=Python,
+  numbers=left,
+  backgroundcolor=\color{gray97},
+}
+
+\definecolor{termbg}{rgb}{0.13,0.13,0.13}
+\definecolor{termfg}{rgb}{0.92,0.92,0.92}
+\definecolor{termgreen}{rgb}{0.65,0.85,0.45}
+
+\lstdefinestyle{Terminal}{
+  basicstyle=\small\ttfamily\color{termfg},
+  backgroundcolor=\color{termbg},
+  frame=single,
+  framesep=6pt,
+  numbers=none,
+  showspaces=false,
+  showstringspaces=false,
+  breaklines=true,
+  literate={→}{{\textcolor{termgreen}{$\rightarrow$}}}1
+           {✓}{{\textcolor{termgreen}{\checkmark}}}1
+           {✗}{{\textcolor{red}{$\times$}}}1
+           {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {ñ}{{\~n}}1
+           {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1 {Ñ}{{\~N}}1,
+}
+
+\makeatletter
+\def\clearpage{%
+  \ifvmode
+    \ifnum \@dbltopnum =\m@ne
+      \ifdim \pagetotal <\topskip
+        \hbox{}
+      \fi
+    \fi
+  \fi
+  \newpage
+  \thispagestyle{empty}
+  \write\m@ne{}
+  \vbox{}
+  \penalty -\@Mi
+}
+\makeatother
+
+\usepackage{pdfpages}
+\usepackage{tikz}
+\usetikzlibrary{babel}
+
+\begin{document}
+
+\input{cover/cover}
+\input{preface/preface}
+
+\tableofcontents
+
+\setlength{\parskip}{5pt}
+
+\input{chapters/01_introduction}
+
+\input{chapters/02_background}
+
+\input{chapters/03_generators}
+
+\input{chapters/04_implementation}
+
+\input{chapters/05_analysis_experimental}
+
+\input{chapters/06_conclusions}
+
+\appendix
+\input{chapters/appendix_installation}
+
+\nocite{*}
+\bibliography{bibliography/bibliography}\addcontentsline{toc}{chapter}{Bibliografía}
+\bibliographystyle{plain}
+
+\end{document}
