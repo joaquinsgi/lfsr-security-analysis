@@ -1,7 +1,7 @@
 \chapter{Fundamentos teóricos}
 \label{cap:fundamentos}
 
-Este capítulo cubre el mínimo necesario para entender el resto del trabajo, qué es un LFSR y cómo se implementa,
+Este capítulo cubre el mínimo necesario para entender el resto del trabajo, qué es un LFSR y cómo funciona,
 qué propiedades tiene la secuencia que produce, cómo medir lo predecible que es esa secuencia con la complejidad lineal,
 y cómo el algoritmo de Berlekamp-Massey rompe un LFSR observando solo unos pocos bits de salida.
 La idea es entender lo necesario para que los capítulos siguientes donde se combinan varios LFSR para conseguir generadores mejores tengan sentido.
@@ -45,6 +45,14 @@ están tabulados en cualquier referencia~\cite{menezes1996}.
 y el número total de primitivos de ese grado.}
 \label{tab:primitivos}
 \end{table}
+
+A lo largo del trabajo los polinomios se representan por la lista de posiciones que intervienen en la realimentación,
+lo que en la jerga de los LFSR se llaman \textit{taps}. Por ejemplo $x^3 + x + 1$ se guarda como las posiciones $[3, 1]$,
+que son justo las celdas que se mezclan con XOR para calcular el bit nuevo (el término independiente no se anota porque siempre está).
+
+Los polinomios primitivos que uso no los he calculado, los he tomado de las tablas ya publicadas en la literatura,
+en concreto de las que recoge el Handbook of Applied Cryptography~\cite{menezes1996}, que lista un primitivo para cada grado.
+Comprobar a mano que un polinomio es primitivo es costoso, pero al estar tabulados basta con escogerlos.
 
 No todo polinomio sobre $\{0,1\}$ da periodo máximo. Por ejemplo, $x^4 + x^3 + x^2 + x + 1$ funciona como retroalimentación
 pero solo produce secuencias de periodo 5, no de 15. Si elegimos uno primitivo nos ahorramos comprobaciones.
@@ -129,57 +137,6 @@ En el ciclo 7 volvemos al estado inicial. La secuencia generada es $\{0, 0, 1, 1
 que es el periodo máximo. Como esperábamos, el polinomio elegido es primitivo.
 \end{ejemplo}
 
-\subsection{Implementación en Python}
-
-La clase \texttt{LFSR} mantiene el estado como una lista de bits y expone los métodos imprescindibles, \texttt{next\_bit} para avanzar un ciclo,
-\texttt{generate} para producir varios bits y \texttt{full\_cycle} para extraer un periodo completo.
-
-\begin{lstlisting}[style=Python,caption={Núcleo de la clase LFSR (\texttt{src/lfsr.py}).}]
-class LFSR:
-    def __init__(self, taps: list[int], initial_state: list[int]):
-        self.degree = max(taps)
-        self.taps = taps
-        self.state = list(initial_state)
-        self._initial_state = list(initial_state)
-
-    def _feedback_bit(self) -> int:
-        result = 0
-        for t in self.taps:
-            result ^= self.state[t - 1]
-        return result
-
-    def next_bit(self) -> int:
-        output = self.state[-1]
-        new_bit = self._feedback_bit()
-        self.state = [new_bit] + self.state[:-1]
-        return output
-
-    def generate(self, n: int) -> list[int]:
-        return [self.next_bit() for _ in range(n)]
-
-    def full_cycle(self) -> list[int]:
-        sequence = []
-        while True:
-            sequence.append(self.next_bit())
-            if self.state == self._initial_state:
-                break
-        return sequence
-\end{lstlisting}
-
-Para comprobar que funciona, ejecutamos el script con el mismo LFSR del ejemplo anterior,
-grado 3 y polinomio $x^3 + x + 1$ con estado inicial $[1, 0, 0]$.
-Esperamos un periodo de $2^3 - 1 = 7$ y la secuencia $\{0, 0, 1, 1, 1, 0, 1\}$ que sacamos a mano.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{images/execution_lfsr.png}
-\caption{Salida de \texttt{python -m src.lfsr}.}
-\label{fig:exec-lfsr}
-\end{figure}
-
-El periodo coincide con el teórico y la secuencia es exactamente la que calculamos a mano en la tabla anterior.
-Esta es la base sobre la que vamos a construir los generadores del capítulo siguiente.
-
 \subsection{Periodo y postulados de Golomb}
 
 La secuencia de salida de un LFSR es siempre periódica, ya que el registro tiene un número finito de estados.
@@ -228,67 +185,12 @@ Su funcionamiento conceptual es sencillo, recorre la secuencia bit a bit manteni
 Cuando ese candidato predice mal el siguiente bit (lo que se llama \textit{discrepancia}), lo ajusta,
 y si la discrepancia ocurre cuando todavía no tiene suficiente información, alarga el registro.
 Al terminar, devuelve el grado del LFSR mínimo y su polinomio de conexión.
-
-\begin{lstlisting}[style=Python,caption={Implementación de Berlekamp-Massey (\texttt{src/berlekamp\_massey.py}).}]
-def berlekamp_massey(sequence: list[int]) -> tuple[int, list[int]]:
-    """Returns (linear_complexity, connection_polynomial)."""
-    n = len(sequence)
-    s = sequence[:]
-
-    C = [1]
-    B = [1]
-    L = 0
-    m = 1
-
-    for i in range(n):
-        d = s[i]
-        for j in range(1, L + 1):
-            if j < len(C):
-                d ^= C[j] & s[i - j]
-        d &= 1
-
-        if d == 0:
-            m += 1
-        elif 2 * L <= i:
-            T = C[:]
-            padding = [0] * m
-            shifted_B = padding + B
-            while len(C) < len(shifted_B):
-                C.append(0)
-            for j in range(len(shifted_B)):
-                C[j] ^= shifted_B[j]
-            L = i + 1 - L
-            B = T
-            m = 1
-        else:
-            padding = [0] * m
-            shifted_B = padding + B
-            while len(C) < len(shifted_B):
-                C.append(0)
-            for j in range(len(shifted_B)):
-                C[j] ^= shifted_B[j]
-            m += 1
-
-    return L, C
-\end{lstlisting}
+El código y un ejemplo de ejecución están en el capítulo~\ref{cap:implementacion}.
 
 La parte importante para entender la consecuencia es esta, \textbf{para reconstruir un LFSR de grado $n$ bastan los primeros $2n$ bits de su secuencia}.
 Si tenemos un LFSR de grado 19, con 38 bits observados un atacante recupera el polinomio y el estado.
 El periodo $2^{19} - 1 \approx 524000$ no protege nada, ya que el coste del ataque depende del grado, no de la longitud de la secuencia.
-
-En la práctica. Generamos 20 bits con un LFSR de grado 5 (polinomio $x^5 + x^2 + 1$) y se lo pasamos a Berlekamp-Massey,
-incluyendo una segunda llamada con solo los 10 primeros bits.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{images/execution_bm.png}
-\caption{Salida de \texttt{python -m src.berlekamp\_massey}.}
-\label{fig:exec-bm}
-\end{figure}
-
-El algoritmo recupera el grado real (5) y el polinomio correcto. Y con solo 10 bits ya converge, porque $2 \cdot 5 = 10$,
-justo lo que predice la teoría. Esto deja claro por qué un LFSR aislado no se puede usar como generador criptográfico,
-hay que añadir algo encima que rompa la linealidad.
+Esto deja claro por qué un LFSR aislado no se puede usar como generador criptográfico, hay que añadir algo encima que rompa la linealidad.
 
 \subsection{Perfil de complejidad lineal}
 

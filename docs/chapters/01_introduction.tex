@@ -273,13 +273,14 @@ Los objetivos de este trabajo son los siguientes.
 
 \section{Estructura de la memoria}
 
-La memoria se organiza en cinco capítulos. Tras esta introducción, el capítulo~\ref{cap:fundamentos} presenta los fundamentos teóricos necesarios,
+La memoria se organiza en seis capítulos. Tras esta introducción, el capítulo~\ref{cap:fundamentos} presenta los fundamentos teóricos necesarios,
 la aritmética en el cuerpo $\mathbb{F}_2$, la definición y propiedades de los LFSR, las secuencias de longitud máxima,
 la complejidad lineal y el algoritmo de Berlekamp-Massey.
 Se incluyen también los criterios que debe cumplir una buena secuencia cifrante y un repaso de los principales tipos de ataques a generadores basados en LFSR.
 
-El capítulo~\ref{cap:generadores} describe los cuatro generadores estudiados, cómo funciona cada uno,
-qué propiedades teóricas de seguridad tiene y qué decisiones de implementación se han tomado.
+El capítulo~\ref{cap:generadores} describe los cuatro generadores estudiados, cómo funciona cada uno
+y qué propiedades teóricas de seguridad tiene. El capítulo~\ref{cap:implementacion} reúne la implementación en Python de todos los componentes
+(el LFSR, Berlekamp-Massey, los cuatro generadores y los ocho tests NIST), con el código real y un ejemplo de ejecución de cada uno.
 El capítulo~\ref{cap:analisis} presenta los experimentos, la configuración utilizada, los resultados de complejidad lineal,
 los tests NIST y la comparación entre generadores. El último capítulo recoge las conclusiones del trabajo
 y las posibilidades que quedarían abiertas para futuros trabajos.
