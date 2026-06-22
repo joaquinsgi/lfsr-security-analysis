@@ -1,0 +1,61 @@
+{
+  "nist": {
+    "LFSR (pure)": {
+      "Monobit": 0.8342,
+      "Block Freq": 0.1549,
+      "Runs": 0.8035,
+      "Binary Matrix": 0.0,
+      "Maurer": 0.2023,
+      "Serial": 0.9705,
+      "Spectral": 0.0,
+      "LC Test": 0.0
+    },
+    "Shrinking": {
+      "Monobit": 0.3072,
+      "Block Freq": 0.297,
+      "Runs": 0.1741,
+      "Binary Matrix": 0.5737,
+      "Maurer": 0.1941,
+      "Serial": 0.3452,
+      "Spectral": 0.0,
+      "LC Test": 0.1446
+    },
+    "Self-Shrinking": {
+      "Monobit": 0.7005,
+      "Block Freq": 0.0115,
+      "Runs": 0.9547,
+      "Binary Matrix": 0.0681,
+      "Maurer": 0.3747,
+      "Serial": 0.948,
+      "Spectral": 0.0,
+      "LC Test": 0.8578
+    },
+    "Geffe": {
+      "Monobit": 0.1548,
+      "Block Freq": 0.5428,
+      "Runs": 0.3462,
+      "Binary Matrix": 0.3739,
+      "Maurer": 0.5006,
+      "Serial": 0.538,
+      "Spectral": 0.0,
+      "LC Test": 0.6389
+    },
+    "ASG": {
+      "Monobit": 0.6509,
+      "Block Freq": 0.7008,
+      "Runs": 0.808,
+      "Binary Matrix": 0.3219,
+      "Maurer": 0.2573,
+      "Serial": 0.9653,
+      "Spectral": 0.8254,
+      "LC Test": 0.315
+    }
+  },
+  "lc": {
+    "LFSR (pure)": 19,
+    "Shrinking": 2498,
+    "Self-Shrinking": 2501,
+    "Geffe": 623,
+    "ASG": 2499
+  }
+}
