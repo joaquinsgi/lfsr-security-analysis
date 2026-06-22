@@ -9,7 +9,8 @@ En este capítulo se describen los cuatro generadores que se han implementado.
 Cada uno usa una estrategia diferente. Geffe combina tres registros con una función booleana,
 Shrinking descarta bits de forma selectiva, Self-Shrinking aplica la misma idea con un solo registro,
 y ASG alterna el avance de dos registros controlados por un tercero.
-Para cada uno se explica el mecanismo, se muestra el código real que lo implementa y se presenta una ejecución que mide la complejidad lineal alcanzada.
+Para cada uno se explica el mecanismo, se da un ejemplo a mano y se discute su seguridad.
+El código y la ejecución que mide la complejidad lineal alcanzada están en el capítulo~\ref{cap:implementacion}.
 
 \section{Generador de Geffe}
 \label{sec:geffe}
@@ -52,37 +53,6 @@ $t$ & $a$ ($R_1$) & $b$ ($R_2$) & $c$ ($R_3$) & $s$ & Selección \\
 
 La salida es $\{0, 1, 1, 1, 1, 1, 0, 0, \ldots\}$.
 Cada bit resultante viene de $R_2$ o de $R_3$ según lo que diga $R_1$ en ese instante.
-
-\subsection{Implementación}
-
-\begin{lstlisting}[style=Python,caption={Generador de Geffe (\texttt{src/generators/geffe.py}).}]
-def geffe_generator(r1: LFSR, r2: LFSR, r3: LFSR, n: int) -> list[int]:
-    """Generates n bits using the Geffe generator."""
-    output = []
-    for _ in range(n):
-        a = r1.next_bit()
-        b = r2.next_bit()
-        c = r3.next_bit()
-        output.append((a & b) ^ ((1 ^ a) & c))
-    return output
-\end{lstlisting}
-
-La función booleana equivalente es $(a \wedge b) \oplus (\neg a \wedge c)$, que es la forma estándar de un multiplexor.
-
-\subsection{Complejidad lineal}
-
-Ejecutamos el generador con los polinomios $R_1$ de grado 7, $R_2$ de grado 5 y $R_3$ de grado 9 (todos primitivos),
-sobre una secuencia de 1000 bits, midiendo la complejidad lineal con Berlekamp-Massey.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{images/execution_geffe.png}
-\caption{Salida de \texttt{python -m src.generators.geffe}.}
-\label{fig:exec-geffe}
-\end{figure}
-
-La complejidad lineal pasa de los grados originales (7, 5, 9) a 107. Hay una mejora clara, pero como veremos a continuación,
-la complejidad lineal alta no salva al generador.
 
 \subsection{La debilidad real, correlación}
 
@@ -153,49 +123,6 @@ $t$ & $a$ ($R_1$) & $b$ ($R_2$) & Salida & Acción \\
 De 8 ciclos salen 5 bits, $\{0, 1, 1, 1, 0\}$.
 Como $R_1$ produce aproximadamente la mitad de unos, de media se necesitan 2 ciclos por bit de salida.
 
-\subsection{Implementación}
-
-\begin{lstlisting}[style=Python,caption={Generador Shrinking (\texttt{src/generators/shrinking.py}).}]
-def shrinking_generator(r1: LFSR, r2: LFSR, n: int) -> list[int]:
-    """Generates n bits. r1 filters the output of r2."""
-    output = []
-    max_clocks = n * 10
-    clocked = 0
-
-    while len(output) < n and clocked < max_clocks:
-        a = r1.next_bit()
-        b = r2.next_bit()
-        clocked += 1
-        if a == 1:
-            output.append(b)
-
-    if len(output) < n:
-        raise RuntimeError(
-            f"could not generate {n} bits after {max_clocks} clocks"
-        )
-
-    return output
-\end{lstlisting}
-
-El parámetro \texttt{max\_clocks} es una protección, si por algún motivo $R_1$ produjera demasiados ceros consecutivos,
-el bucle terminaría con un error en vez de quedarse colgado.
-
-\subsection{Complejidad lineal}
-
-Ejecutamos el generador con los mismos parámetros que antes,
-$R_1$ grado 7 y $R_2$ grado 5, generando 1000 bits.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{images/execution_shrinking.png}
-\caption{Salida de \texttt{python -m src.generators.shrinking}.}
-\label{fig:exec-shrinking}
-\end{figure}
-
-El salto es espectacular. De LFSR de grados 7 y 5 (que individualmente tendrían complejidad lineal 7 y 5),
-salimos con una complejidad lineal de 320. El factor de mejora frente al LFSR más grande es de unos 45x.
-Y a diferencia de Geffe, no hay correlación directa explotable, ya que un atacante no sabe en qué posición del ciclo de $R_2$ está cada bit de la salida.
-
 \subsection{Consideraciones prácticas}
 
 La debilidad principal del Shrinking es que la seguridad depende de que $R_1$ sea desconocido.
@@ -239,43 +166,6 @@ Par & $a$ & $b$ & Salida & Acción \\
 
 16 bits del LFSR (8 pares) dan 4 bits de salida, $\{1, 1, 0, 0\}$.
 
-\subsection{Implementación}
-
-\begin{lstlisting}[style=Python,caption={Generador Self-Shrinking (\texttt{src/generators/self\_shrinking.py}).}]
-def self_shrinking_generator(r: LFSR, n: int) -> list[int]:
-    """Generates n bits from a single LFSR using self-shrinking."""
-    output = []
-    max_clocks = n * 10
-    clocked = 0
-
-    while len(output) < n and clocked < max_clocks:
-        a = r.next_bit()
-        b = r.next_bit()
-        clocked += 2
-        if a == 1:
-            output.append(b)
-
-    if len(output) < n:
-        raise RuntimeError(
-            f"could not generate {n} bits after {max_clocks} clocks"
-        )
-
-    return output
-\end{lstlisting}
-
-\subsection{Complejidad lineal}
-
-Ejecutamos sobre un LFSR de grado 11 con polinomio $x^{11} + x^2 + 1$, generando 1000 bits.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{images/execution_self_shrinking.png}
-\caption{Salida de \texttt{python -m src.generators.self\_shrinking}.}
-\label{fig:exec-self-shrinking}
-\end{figure}
-
-De nuevo el salto es enorme, de 11 a 501, factor 45x. La complejidad lineal queda en valores similares al Shrinking con menos hardware.
-
 \subsection{Diferencias con el Shrinking}
 
 Aunque el mecanismo de fondo es el mismo, hay una diferencia importante.
@@ -307,7 +197,7 @@ Eso es lo que permite la correlación. En ASG, $R_2$ y $R_3$ no avanzan a la vez
 y la decisión la toma $R_1$. Esto rompe la sincronización temporal entre la salida y cada registro individual.
 Además la salida es el XOR de ambos (no una selección), lo que mezcla las dos secuencias de forma más profunda.
 
-\subsection{Ejemplo}En el cap
+\subsection{Ejemplo}
 
 \begin{itemize}
   \item $R_1$ (control), grado 3, polinomio $x^3 + x + 1$, estado $(1, 0, 1)$.
@@ -336,46 +226,6 @@ $t$ & $a$ ($R_1$) & $b_2$ & $b_3$ & $s = b_2 \oplus b_3$ & Acción \\
 
 La salida es $\{0, 1, 0, 0, 1, 0, 1, 1, \ldots\}$.
 
-\subsection{Implementación}
-
-\begin{lstlisting}[style=Python,caption={Generador ASG (\texttt{src/generators/alternating\_step.py}).}]
-def alternating_step_generator(r1: LFSR, r2: LFSR, r3: LFSR, n: int) -> list[int]:
-    """Generates n bits. r1 decides which of r2/r3 advances."""
-    output = []
-
-    b2 = r2.next_bit()
-    b3 = r3.next_bit()
-
-    for _ in range(n):
-        a = r1.next_bit()
-        if a == 1:
-            b2 = r2.next_bit()
-        else:
-            b3 = r3.next_bit()
-        output.append(b2 ^ b3)
-
-    return output
-\end{lstlisting}
-
-Una sutileza, los bits $b_2$ y $b_3$ se inicializan fuera del bucle. Esto es necesario porque en cada iteración solo se avanza uno de los dos,
-así que el otro tiene que tener un valor previo válido para entrar en el XOR.
-
-\subsection{Complejidad lineal}
-
-Ejecutamos el generador con los mismos LFSR que usamos en Geffe,
-grados 7, 5 y 9 con 1000 bits de salida.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{images/execution_alternating_step.png}
-\caption{Salida de \texttt{python -m src.generators.alternating\_step}.}
-\label{fig:exec-asg}
-\end{figure}
-
-Esto es lo más interesante de todo el capítulo. Con los mismos LFSR que dieron 107 de complejidad lineal en Geffe,
-el ASG llega a 500. La diferencia no está en los registros ni en sus tamaños sino exclusivamente
-en cómo se combinan sus salidas. Reloj alterno y XOR de fuentes independientes amplifica mucho más la complejidad lineal que un multiplexor.
-
 \subsection{Seguridad}
 
 El ASG combina dos defensas a la vez, reloj irregular (un atacante no sabe cuántas veces avanzó cada registro)
@@ -388,7 +238,7 @@ Con $n_2$ y $n_3$ de 64 bits cada uno, el ataque tiene coste $2^{128}$, que se c
 
 \section{Resumen comparativo}
 
-La tabla siguiente compara los cuatro generadores con los parámetros que vamos a usar en el análisis experimental del capítulo siguiente.
+La tabla siguiente compara los cuatro generadores con los parámetros que vamos a usar en el análisis experimental (capítulo~\ref{cap:analisis}).
 
 \begin{center}
 \begin{tabular}{l|cccc}
@@ -410,11 +260,11 @@ Primero, Geffe es el caso débil. Su complejidad lineal es menor que la de los o
 lo que permite ataques mucho más eficientes que Berlekamp-Massey.
 
 Segundo, Shrinking, Self-Shrinking y ASG quedan en complejidades lineales parecidas (320, 501, 500) con secuencias de 1000 bits.
-En el capítulo siguiente, con secuencias más largas, se sigue manteniendo esta proximidad y los tres se acercan a $N/2$.
+En el análisis experimental, con secuencias más largas, se sigue manteniendo esta proximidad y los tres se acercan a $N/2$.
 
 Tercero, comparando Geffe y ASG (que usan los mismos tres LFSR), la diferencia entre 107 y 500 sale solo del mecanismo de combinación.
 Mismo hardware, conexión distinta, resultado completamente distinto. Esto es probablemente la lección más importante del trabajo,
 en generadores basados en LFSR la clave no es el tamaño de los registros sino cómo se combinan.
 
-El capítulo siguiente lleva todo esto un paso más allá, ejecuta los cuatro generadores con secuencias más largas, mide su complejidad lineal exacta
+El análisis experimental (capítulo~\ref{cap:analisis}) lleva todo esto un paso más allá, ejecuta los cuatro generadores con secuencias más largas, mide su complejidad lineal exacta
 y los pasa por ocho tests estadísticos del estándar NIST para ver qué generador tiene la mejor calidad de salida en la práctica.
